@@ -97,7 +97,7 @@ export default function ClientDashboard() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: cData }, { data: sData }, { data: campData }, { data: adsetData }, { data: adData }, { data: salesData }, { data: demoData }, { data: geoData }] = await Promise.all([
+    const results = await Promise.allSettled([
       supabase.from('clients').select('*').eq('id', id).single(),
       supabase.from('meta_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo).order('date'),
       supabase.from('campaign_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
@@ -107,17 +107,17 @@ export default function ClientDashboard() {
       supabase.from('demographic_snapshots').select('age, gender, spend, impressions, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('geographic_snapshots').select('region, spend, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
     ])
-    setClient(cData)
-    setSnapshots(sData ?? [])
-    setCampaigns(campData ?? [])
-    setAdsets(adsetData ?? [])
-    setAds(adData ?? [])
-
-    const sales = salesData ?? []
+    const get = (i) => results[i].status === 'fulfilled' ? results[i].value.data : null
+    setClient(get(0))
+    setSnapshots(get(1) ?? [])
+    setCampaigns(get(2) ?? [])
+    setAdsets(get(3) ?? [])
+    setAds(get(4) ?? [])
+    const sales = get(5) ?? []
     setSalesByCategory(sales)
     setTotalSales(sales.reduce((s, r) => s + Number(r.count), 0))
-    setDemographics(demoData ?? [])
-    setGeographic(geoData ?? [])
+    setDemographics(get(6) ?? [])
+    setGeographic(get(7) ?? [])
     setLoading(false)
   }
 
