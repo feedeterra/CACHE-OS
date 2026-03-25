@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext'
+import TopNav from '../components/TopNav'
+import Sidebar from '../components/Sidebar'
 
 export default function AdminLayout() {
   const { user, signOut } = useAuth()
