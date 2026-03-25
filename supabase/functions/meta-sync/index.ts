@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
     const tr = encodeURIComponent(JSON.stringify({ since: dateFrom, until: dateTo }))
     const base = `https://graph.facebook.com/v25.0/${acct}`
 
-    // Fetch all insight levels + entity lists + demographic breakdown in parallel
-    const [accountR, campaignR, adsetR, adR, campEntR, adEntR, demoR] = await Promise.allSettled([
+    // Fetch all insight levels + entity lists + demographic + geographic breakdown in parallel
+    const [accountR, campaignR, adsetR, adR, campEntR, adEntR, demoR, geoR] = await Promise.allSettled([
       fetchPages(`${base}/insights?fields=${fields}&time_range=${tr}&time_increment=1&limit=500&access_token=${token}`),
       fetchPages(`${base}/insights?fields=campaign_id,campaign_name,${fields}&time_range=${tr}&time_increment=1&level=campaign&limit=500&access_token=${token}`),
       fetchPages(`${base}/insights?fields=campaign_id,campaign_name,adset_id,adset_name,${fields}&time_range=${tr}&time_increment=1&level=adset&limit=500&access_token=${token}`),
@@ -106,6 +106,7 @@ Deno.serve(async (req) => {
       fetchPages(`${base}/campaigns?fields=id,name,effective_status&limit=500&access_token=${token}`),
       fetchPages(`${base}/ads?fields=id,name,effective_status,creative{thumbnail_url,body,title}&limit=500&access_token=${token}`),
       fetchPages(`${base}/insights?fields=spend,impressions,clicks,reach,actions&breakdowns=age,gender&time_range=${tr}&time_increment=1&limit=500&access_token=${token}`),
+      fetchPages(`${base}/insights?fields=spend,impressions,clicks,reach,actions&breakdowns=region&time_range=${tr}&time_increment=1&limit=500&access_token=${token}`),
     ])
 
     const accountData = accountR.status === 'fulfilled' ? accountR.value : []
@@ -115,6 +116,7 @@ Deno.serve(async (req) => {
     const campEntities = campEntR.status === 'fulfilled' ? campEntR.value : []
     const adEntities = adEntR.status === 'fulfilled' ? adEntR.value : []
     const demoData = demoR.status === 'fulfilled' ? demoR.value : []
+    const geoData = geoR.status === 'fulfilled' ? geoR.value : []
 
     // Build lookup maps for entity data
     const campStatusMap: Record<string, string> = {}
@@ -203,8 +205,23 @@ Deno.serve(async (req) => {
       await upsertBatch(supabase, 'demographic_snapshots', rows, 'client_id,date,age,gender', client.name)
     }
 
+    // 6 — Geographic snapshots (region breakdown)
+    if (geoData.length > 0) {
+      const rows = geoData.map((i: MetaInsight & { region?: string }) => ({
+        client_id,
+        date: i.date_start,
+        region: i.region ?? 'unknown',
+        spend: parseFloat(i.spend ?? '0'),
+        impressions: parseInt(i.impressions ?? '0'),
+        clicks: parseInt(i.clicks ?? '0'),
+        reach: parseInt(i.reach ?? '0'),
+        leads: act(i.actions, 'onsite_conversion.messaging_first_reply'),
+      }))
+      await upsertBatch(supabase, 'geographic_snapshots', rows, 'client_id,date,region', client.name)
+    }
+
     // Log errors for any failed fetches
-    for (const [name, result] of [['account', accountR], ['campaign', campaignR], ['adset', adsetR], ['ad', adR], ['camp_entities', campEntR], ['ad_entities', adEntR], ['demographics', demoR]] as const) {
+    for (const [name, result] of [['account', accountR], ['campaign', campaignR], ['adset', adsetR], ['ad', adR], ['camp_entities', campEntR], ['ad_entities', adEntR], ['demographics', demoR], ['geographic', geoR]] as const) {
       if (result.status === 'rejected') {
         await supabase.from('system_logs').insert({
           level: 'warn', message: `Meta ${name} fetch failed for ${client.name}: ${String(result.reason)}`,
@@ -214,7 +231,7 @@ Deno.serve(async (req) => {
 
     await supabase.from('system_logs').insert({
       level: 'info',
-      message: `Meta sync OK: ${client.name} — ${accountData.length} days, ${campaignData.length} camp rows, ${adsetData.length} adset rows, ${adData.length} ad rows, ${demoData.length} demo rows`,
+      message: `Meta sync OK: ${client.name} — ${accountData.length} days, ${campaignData.length} camp rows, ${adsetData.length} adset rows, ${adData.length} ad rows, ${demoData.length} demo rows, ${geoData.length} geo rows`,
       metadata: { client_id, dateFrom, dateTo },
     })
 

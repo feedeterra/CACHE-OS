@@ -84,6 +84,7 @@ export default function ClientDashboard() {
   const [totalSales, setTotalSales] = useState(0)
   const [loading, setLoading] = useState(true)
   const [demographics, setDemographics] = useState([])
+  const [geographic, setGeographic] = useState([])
   const [syncing, setSyncing] = useState(false)
   const [copied, setCopied] = useState(false)
   const [scalePct, setScalePct] = useState(20)
@@ -96,7 +97,7 @@ export default function ClientDashboard() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: cData }, { data: sData }, { data: campData }, { data: adsetData }, { data: adData }, { data: salesData }, { data: demoData }] = await Promise.all([
+    const [{ data: cData }, { data: sData }, { data: campData }, { data: adsetData }, { data: adData }, { data: salesData }, { data: demoData }, { data: geoData }] = await Promise.all([
       supabase.from('clients').select('*').eq('id', id).single(),
       supabase.from('meta_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo).order('date'),
       supabase.from('campaign_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
@@ -104,6 +105,7 @@ export default function ClientDashboard() {
       supabase.from('ad_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('portal_sales_daily').select('date, count, category').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('demographic_snapshots').select('age, gender, spend, impressions, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
+      supabase.from('geographic_snapshots').select('region, spend, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
     ])
     setClient(cData)
     setSnapshots(sData ?? [])
@@ -115,6 +117,7 @@ export default function ClientDashboard() {
     setSalesByCategory(sales)
     setTotalSales(sales.reduce((s, r) => s + Number(r.count), 0))
     setDemographics(demoData ?? [])
+    setGeographic(geoData ?? [])
     setLoading(false)
   }
 
@@ -388,7 +391,7 @@ export default function ClientDashboard() {
 
       {/* Demographics */}
       {(() => {
-        if (demographics.length === 0) return (
+        if (demographics.length === 0 && geographic.length === 0) return (
           <div className="border border-border/40 bg-bg-secondary p-3">
             <p className="text-[10px] text-accent font-mono uppercase tracking-widest mb-2">// AUDIENCIA_DEMOGRÁFICA</p>
             <p className="text-text-dim/50 font-mono text-[10px] text-center py-6">
@@ -434,10 +437,23 @@ export default function ClientDashboard() {
           )
         }
 
+        // Aggregate geographic data
+        const byRegion = {}
+        for (const d of geographic) {
+          if (!byRegion[d.region]) byRegion[d.region] = { region: d.region, spend: 0, leads: 0, reach: 0 }
+          byRegion[d.region].spend += Number(d.spend ?? 0)
+          byRegion[d.region].leads += Number(d.leads ?? 0)
+          byRegion[d.region].reach += Number(d.reach ?? 0)
+        }
+        const topRegions = Object.values(byRegion)
+          .sort((a, b) => b.spend - a.spend)
+          .slice(0, 10)
+        const maxRegionSpend = topRegions[0]?.spend || 1
+
         return (
           <div className="border border-border/40 bg-bg-secondary p-3">
             <p className="text-[10px] text-accent font-mono uppercase tracking-widest mb-4">// AUDIENCIA_DEMOGRÁFICA</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Age breakdown */}
               <div>
                 <p className="text-[9px] text-text-dim font-mono uppercase tracking-widest mb-2">Por edad — Spend & Mensajes</p>
@@ -470,7 +486,6 @@ export default function ClientDashboard() {
                     <Bar yAxisId="leads" dataKey="leads" name="Mensajes" fill="#22c55e" fillOpacity={0.5} radius={[3,3,0,0]} />
                   </BarChart>
                 </ResponsiveContainer>
-                {/* Gender legend */}
                 <div className="flex gap-3 mt-1 justify-center">
                   {genderData.map((g) => (
                     <span key={g.gender} className="flex items-center gap-1 font-mono text-[8px] text-text-dim">
@@ -479,6 +494,35 @@ export default function ClientDashboard() {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Top regions */}
+              <div>
+                <p className="text-[9px] text-text-dim font-mono uppercase tracking-widest mb-2">Top provincias — Spend</p>
+                {topRegions.length === 0 ? (
+                  <p className="text-text-dim/40 font-mono text-[9px] text-center py-8">[ SIN DATOS GEO — EJECUTAR SYNC ]</p>
+                ) : (
+                  <div className="space-y-1.5" style={{ height: 180, overflowY: 'auto' }}>
+                    {topRegions.map((r, i) => (
+                      <div key={r.region} className="flex items-center gap-2">
+                        <span className="font-mono text-[8px] text-text-dim/50 w-3 shrink-0">{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-mono text-[9px] text-text truncate">{r.region}</span>
+                            <span className="font-mono text-[9px] text-accent shrink-0 ml-1">{formatCurrency(r.spend)}</span>
+                          </div>
+                          <div className="h-1 bg-bg-primary rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-accent/60 rounded-full"
+                              style={{ width: `${(r.spend / maxRegionSpend) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        {r.leads > 0 && <span className="font-mono text-[8px] text-success shrink-0">{r.leads}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
