@@ -1,17 +1,21 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 
-const vaultDir = './cache-vault'
-const outPath = './supabase/functions/whatsapp-webhook/vault.ts'
+const VAULT_DIR = path.join(__dirname, 'cache-vault');
+const OUTPUT_FILE = path.join(__dirname, 'supabase', 'functions', 'whatsapp-webhook', 'vault.ts');
 
-const files = fs.readdirSync(vaultDir).filter(f => f.endsWith('.md'))
-let output = ''
+function generateVault() {
+  const files = fs.readdirSync(VAULT_DIR).filter(f => f.endsWith('.md'));
+  let content = '';
 
-for (const file of files) {
-  const content = fs.readFileSync(path.join(vaultDir, file), 'utf8')
-  const varName = file.replace('.md', '').toUpperCase()
-  output += `export const ${varName} = \`${content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;\n\n`
+  files.forEach(file => {
+    const varName = file.replace('.md', '').toUpperCase(); // SOP_ESCALADO, etc
+    const text = fs.readFileSync(path.join(VAULT_DIR, file), 'utf8');
+    content += `export const ${varName} = \`${text.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`;\n\n`;
+  });
+
+  fs.writeFileSync(OUTPUT_FILE, content);
+  console.log(`✅ Bóveda actualizada en: ${OUTPUT_FILE}`);
 }
 
-fs.writeFileSync(outPath, output)
-console.log('vault.ts updated!')
+generateVault();
