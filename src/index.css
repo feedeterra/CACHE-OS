@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@500;700;900&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+
+@theme {
+  --color-bg-primary: #0D1117;
+  --color-bg-secondary: #161b22;
+  --color-bg-surface: #1c2333;
+  --color-accent: #F97316;
+  --color-accent-soft: #ffb690;
+  --color-text: #e6edf3;
+  --color-text-dim: #7d8590;
+  --color-border: #F97316;
+  --color-success: #3fb950;
+  --color-danger: #f85149;
+  --color-warning: #d29922;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Epilogue', sans-serif;
+  --animate-blink: blink 1s step-end infinite;
+  --animate-led: led-pulse 2s ease-in-out infinite;
+  --animate-scan: scan 4s linear infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes led-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor; }
+  50% { opacity: 0.35; box-shadow: none; }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+body {
+  background: radial-gradient(ellipse at 50% 0%, #1c2333 0%, #0D1117 65%);
+  min-height: 100vh;
+  font-family: var(--font-sans);
+}
+
+/* Scan-line overlay on glass panels */
+.glass {
+  background: rgba(22, 27, 34, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top-color: rgba(255,255,255,0.14);
+  border-left-color: rgba(255,255,255,0.10);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+/* Scan line animation on hover */
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.4) 40%, rgba(249,115,22,0.4) 60%, transparent);
+  animation: scan-h 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes scan-h {
+  0%   { top: 0%;   opacity: 0.6; }
+  50%  { top: 100%; opacity: 0.2; }
+  100% { top: 0%;   opacity: 0.6; }
+}
+
+/* Accent top border on hover */
+.glass:hover {
+  border-color: rgba(249,115,22,0.18);
+  border-top-color: rgba(249,115,22,0.35);
+}
+
+.glow-accent { box-shadow: 0 0 32px rgba(249,115,22,0.15), 0 0 0 1px rgba(249,115,22,0.08), 0 1px 0 rgba(255,255,255,0.05) inset; }
+.glow-success { box-shadow: 0 0 24px rgba(63,185,80,0.12); }
+.glow-danger  { box-shadow: 0 0 24px rgba(248,81,73,0.12); }
+
+/* Corner bracket HUD decoration (usable via .hud-corners) */
+.hud-corners {
+  position: relative;
+}
+.hud-corners::before,
+.hud-corners::after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  border-color: rgba(249,115,22,0.5);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 2;
+}
+.hud-corners::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+.hud-corners::after  { top: -1px; right: -1px; border-width: 1px 1px 0 0; }
+
+/* Mouse spotlight — radial glow que sigue al cursor dentro de cada panel */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    350px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(249,115,22,0.07) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.glass:hover::after {
+  opacity: 1;
+}
+/* Display font for big numbers */
+.font-display { font-family: var(--font-display); }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(249,115,22,0.4) transparent;
+}
+
+::selection {
+  background: rgba(249,115,22,0.3);
+  color: #e6edf3;
+}
