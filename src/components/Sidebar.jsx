@@ -7,19 +7,9 @@ const FUNNEL_DOT = {
   leads: 'bg-success',
 }
 
-export default function Sidebar({ isOpen, onClose }) {
-  const [clients, setClients] = useState([])
+export default function Sidebar({ isOpen, onClose, clients = [] }) {
   const [open, setOpen] = useState(true)
   const location = useLocation()
-
-  useEffect(() => {
-    supabase
-      .from('clients')
-      .select('id, name, funnel_type, is_active')
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data }) => setClients(data ?? []))
-  }, [location.pathname])
 
   // Close sidebar on navigation change (mobile)
   useEffect(() => {

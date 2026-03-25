@@ -149,7 +149,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat cards — asymmetric: 3 igual + 1 destacada */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {STATS.map((s, i) => (
           <div key={s.label} className={`glass hud-corners rounded-sm p-4 relative overflow-hidden ${i === 0 ? 'glow-accent' : ''}`}>
             {/* Decorative coord */}
