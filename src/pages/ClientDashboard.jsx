@@ -421,7 +421,7 @@ export default function ClientDashboard() {
           byGender[g].leads += Number(d.leads ?? 0)
         }
         const genderData = Object.values(byGender)
-        const GENDER_COLORS = { Hombres: '#60a5fa', Mujeres: '#f472b6', Otro: '#a78bfa' }
+        const GENDER_COLORS = { Hombres: '#F97316', Mujeres: '#3fb950', Otro: '#7d8590' }
 
         const DemoTip = ({ active, payload, label }) => {
           if (!active || !payload?.length) return null
