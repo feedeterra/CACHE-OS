@@ -23,6 +23,7 @@
     "@remotion/layout-utils": "4.0.438",
     "@remotion/media-utils": "4.0.438",
     "@remotion/tailwind-v4": "4.0.438",
+    "@remotion/captions": "4.0.438",
     "zod": "^3.23.8"
   },
   "devDependencies": {
