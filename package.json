@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.0",
+    "@supabase/supabase-js": "^2.45.6",
     "date-fns": "^4.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -23,7 +23,7 @@
     "@remotion/layout-utils": "4.0.438",
     "@remotion/media-utils": "4.0.438",
     "@remotion/tailwind-v4": "4.0.438",
-    "zod": "3.23.6"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
