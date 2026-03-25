@@ -14,10 +14,22 @@ function Clock() {
   )
 }
 
-export default function TopNav({ email, onLogout }) {
+export default function TopNav({ email, onLogout, onToggleSidebar }) {
   return (
-    <header className="flex items-center justify-between px-5 h-11 border-b border-white/5 bg-bg-primary shrink-0">
+    <header className="flex items-center justify-between px-5 h-11 border-b border-white/5 bg-bg-primary shrink-0 sticky top-0 z-50">
       <div className="flex items-center gap-3">
+        {onToggleSidebar && (
+          <button 
+            onClick={onToggleSidebar}
+            className="md:hidden text-accent p-1 -ml-2 hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        )}
         <span className="text-accent font-bold font-display text-sm tracking-widest">CACHE // OS</span>
         <span className="text-[8px] font-mono text-text-dim/40 border border-white/5 px-1.5 py-0.5">v2.0</span>
       </div>

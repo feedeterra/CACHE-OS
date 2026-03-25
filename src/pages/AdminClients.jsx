@@ -111,7 +111,7 @@ export default function AdminClients() {
 
       {form && (
         <HudPanel title={form.id ? 'EDIT_CLIENT' : 'NEW_CLIENT'}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
               { key: 'name',               label: 'CLIENT_NAME',       placeholder: 'Acme Corp' },
               { key: 'meta_ad_account_id', label: 'META_AD_ACCOUNT',   placeholder: 'act_123456' },
@@ -237,7 +237,8 @@ export default function AdminClients() {
         {loading ? (
           <p className="text-text-dim font-mono text-[10px] py-4 text-center">LOADING <BlinkingCursor /></p>
         ) : (
-          <table className="w-full font-mono text-[10px]">
+          <div className="overflow-x-auto">
+            <table className="w-full font-mono text-[10px] min-w-[600px]">
             <thead>
               <tr className="text-text-dim border-b border-border/20">
                 {['NOMBRE','TIPO','META_ACCOUNT','BUDGET/MO','STATUS','PORTAL','ACTIONS'].map((h) => (
@@ -284,6 +285,7 @@ export default function AdminClients() {
               )}
             </tbody>
           </table>
+          </div>
         )}
       </HudPanel>
     </div>

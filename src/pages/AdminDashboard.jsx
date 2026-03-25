@@ -141,15 +141,15 @@ export default function AdminDashboard() {
           <span className="font-display font-bold text-text tracking-tight text-[15px]">MÉTRICAS GLOBALES</span>
           <BlinkingCursor />
         </div>
-        <div className="ml-auto flex items-center gap-4 text-[9px] text-text-dim font-mono">
-          <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-success" /> SYS:ONLINE</span>
-          <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-accent" /> META:SYNC</span>
-          <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-success" /> WA:ACTIVO</span>
+        <div className="ml-auto flex items-center gap-2 md:gap-4 text-[9px] text-text-dim font-mono">
+          <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-success" /> <span className="hidden xs:inline">SYS:</span>ONLINE</span>
+          <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-accent" /> <span className="hidden xs:inline">META:</span>SYNC</span>
+          <span className="hidden sm:flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-success" /> <span className="hidden xs:inline">WA:</span>ACTIVO</span>
         </div>
       </div>
 
       {/* Stat cards — asymmetric: 3 igual + 1 destacada */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {STATS.map((s, i) => (
           <div key={s.label} className={`glass hud-corners rounded-sm p-4 relative overflow-hidden ${i === 0 ? 'glow-accent' : ''}`}>
             {/* Decorative coord */}
@@ -165,10 +165,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Chart + Client table — 2-col asymmetric */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
 
         {/* Chart — wider */}
-        <div className="col-span-3 glass rounded-sm p-4 relative">
+        <div className="lg:col-span-3 glass rounded-sm p-4 relative">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="font-medium text-text tracking-tight text-[13px]">Spend & Leads</p>
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Client quick-view — narrower */}
-        <div className="col-span-2 glass rounded-sm p-4 relative">
+        <div className="lg:col-span-2 glass rounded-sm p-4 relative">
           <div className="flex items-center justify-between mb-3">
             <p className="font-medium text-text tracking-tight text-[13px]">Clientes</p>
             <span className="text-[8px] font-mono text-text-dim/20 select-none">MATRIX_v1</span>

@@ -36,18 +36,18 @@ export default function LogsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-white/5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
         <div className="flex items-center gap-2">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" style={{ animation: 'led-pulse 2s ease-in-out infinite' }} />
           <span className="font-display font-bold text-text tracking-tight text-[15px]">SYSTEM LOGS</span>
           <BlinkingCursor />
         </div>
-        <div className="flex items-center gap-1 font-mono text-[9px]">
+        <div className="flex items-center gap-1 font-mono text-[9px] overflow-x-auto pb-1 sm:pb-0">
           {['all', 'info', 'warn', 'error'].map((lvl) => (
             <button
               key={lvl}
               onClick={() => setFilter(lvl)}
-              className={`px-2 py-1 border uppercase transition-colors cursor-pointer ${
+              className={`px-2 py-1 border uppercase transition-colors cursor-pointer whitespace-nowrap ${
                 filter === lvl
                   ? 'border-accent text-accent bg-accent/5'
                   : 'border-white/5 text-text-dim hover:text-text'

@@ -7,7 +7,7 @@ const FUNNEL_DOT = {
   leads: 'bg-success',
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const [clients, setClients] = useState([])
   const [open, setOpen] = useState(true)
   const location = useLocation()
@@ -21,6 +21,13 @@ export default function Sidebar() {
       .then(({ data }) => setClients(data ?? []))
   }, [location.pathname])
 
+  // Close sidebar on navigation change (mobile)
+  useEffect(() => {
+    if (window.innerWidth < 768 && isOpen) {
+      onClose();
+    }
+  }, [location.pathname]);
+
   const link = (isActive) =>
     `block px-5 py-2 font-mono text-xs uppercase tracking-wider transition-colors border-l-2 ${
       isActive ? 'text-accent border-accent bg-accent/5' : 'text-text-dim hover:text-text border-transparent'
@@ -28,8 +35,16 @@ export default function Sidebar() {
 
   return (
     <nav
-      className="w-56 bg-bg-primary py-4 flex flex-col overflow-y-auto shrink-0"
-      style={{ borderRight: '1px solid', borderImageSource: 'linear-gradient(to bottom, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.05) 60%, transparent 100%)', borderImageSlice: 1 }}
+      className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-bg-primary py-4 flex flex-col overflow-y-auto shrink-0 transition-transform duration-300 transform
+        md:relative md:translate-x-0 md:w-56 md:flex md:border-r md:border-white/5
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}
+      style={{ 
+        borderRight: '1px solid', 
+        borderImageSource: 'linear-gradient(to bottom, rgba(0,255,65,0.15) 0%, rgba(0,255,65,0.05) 60%, transparent 100%)', 
+        borderImageSlice: 1 
+      }}
     >
       <NavLink to="/admin" end className={({ isActive }) => link(isActive)}>
         {'>'} OVERVIEW
