@@ -13,12 +13,23 @@ No agregues saludos, ni puntuación adicional si todo está bien. SOLO "ALL_GOOD
 const KAPSO_KEY = Deno.env.get('KAPSO_API_KEY')!
 const KAPSO_PHONE_ID = Deno.env.get('KAPSO_PHONE_NUMBER_ID')!
 const ADMIN_PHONE = Deno.env.get('ADMIN_WHATSAPP_PHONE') ?? '+5491100000000' // Placeholder o de DB
+const TELEGRAM_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
+const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_ADMIN_CHAT_ID')
 
 async function sendWhatsAppAlert(text: string) {
   await fetch(`https://api.kapso.ai/meta/whatsapp/v24.0/${KAPSO_PHONE_ID}/messages`, {
     method: 'POST',
     headers: { 'X-API-Key': KAPSO_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ messaging_product: 'whatsapp', to: ADMIN_PHONE, type: 'text', text: { body: text } }),
+  })
+}
+
+async function sendTelegramAlert(text: string) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return
+  await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' }),
   })
 }
 
@@ -91,11 +102,14 @@ Deno.serve(async (req) => {
 
   // 5. ACCIÓN PROACTIVA
   if (reply !== 'ALL_GOOD' && reply.length > 5) {
-     // A. Mandar WhatsApp al ADMIN
+     // A. Mandar alertas al ADMIN (WhatsApp + Telegram en paralelo)
+     const alertTasks: Promise<void>[] = []
      if (ADMIN_PHONE !== '+5491100000000') {
-         // Reemplazar prefijo [ALERTA CACHE-OS] si no existe
-         await sendWhatsAppAlert(`🚨 *Alerta CACHE-OS Guardian*\n\n${reply}`)
+         alertTasks.push(sendWhatsAppAlert(`🚨 *Alerta CACHE-OS Guardian*\n\n${reply}`))
      }
+     const htmlReply = reply.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+     alertTasks.push(sendTelegramAlert(`🚨 <b>Alerta CACHE-OS Guardian</b>\n\n${htmlReply}`))
+     await Promise.allSettled(alertTasks)
      
      // B. Registrar en Dashboard UI
      await supabase.from('system_logs').insert({ level: 'warn', message: `⚠️ Detección Proactiva:\n${reply}` })

@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminClients from './pages/AdminClients'
 import ClientDashboard from './pages/ClientDashboard'
 import ClientPortal from './pages/ClientPortal'
+import LandingPage from './pages/LandingPage'
 import LogsPage from './pages/LogsPage'
 import Login from './pages/Login'
 import AuthCallback from './pages/AuthCallback'
@@ -46,7 +47,7 @@ function RequireAdmin({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/admin" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 

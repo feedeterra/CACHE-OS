@@ -1,9 +1,11 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { processWithGroq } from '../whatsapp-webhook/groqProcessor.ts'
+import { processWithGroq } from '../_shared/groqProcessor.ts'
 
 const KAPSO_KEY = Deno.env.get('KAPSO_API_KEY')!
 const KAPSO_PHONE_ID = Deno.env.get('KAPSO_PHONE_NUMBER_ID')!
 const ADMIN_PHONE = '542346306562' // El número del usuario para recibir los reportes
+const TELEGRAM_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
+const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_ADMIN_CHAT_ID')
 
 async function sendMessage(to: string, text: string) {
   await fetch(`https://api.kapso.ai/meta/whatsapp/v24.0/${KAPSO_PHONE_ID}/messages`, {
@@ -18,6 +20,15 @@ async function sendMessage(to: string, text: string) {
       type: 'text',
       text: { body: text },
     }),
+  })
+}
+
+async function sendTelegramMessage(text: string) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return
+  await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' }),
   })
 }
 
@@ -36,7 +47,10 @@ Deno.serve(async (req) => {
 
     if (!clients || clients.length === 0) return new Response('No clients')
 
-    await sendMessage(ADMIN_PHONE, `⚡️ *INICIO DE AUDITORÍA TÁCTICA (20:00 HS)* ⚡️\nProcesando ${clients.length} cuentas...`)
+    await Promise.allSettled([
+      sendMessage(ADMIN_PHONE, `⚡️ *INICIO DE AUDITORÍA TÁCTICA (20:00 HS)* ⚡️\nProcesando ${clients.length} cuentas...`),
+      sendTelegramMessage(`⚡️ <b>AUDITORÍA TÁCTICA DIARIA</b>\nProcesando ${clients.length} cuentas...`),
+    ])
 
     for (const client of clients) {
       // 2. Obtener métricas de hoy (último snapshot)
@@ -47,10 +61,10 @@ Deno.serve(async (req) => {
         .order('date', { ascending: false })
         .limit(1)
 
-      const prompt = `Genera un REPORTE TÁCTICO DIARIO para el cliente "${client.name}". 
+      const prompt = `Genera un REPORTE TÁCTICO DIARIO para el cliente "${client.name}".
       Métricas actuales: ${JSON.stringify(metrics?.[0] || {})}
       Presupuesto: ${client.monthly_budget}
-      
+
       Reglas:
       - Sé muy profesional y directo.
       - Resalta ROAS y CPA.
@@ -59,7 +73,13 @@ Deno.serve(async (req) => {
       - Finaliza con una recomendación de acción (Scalability o Fix).`
 
       const report = await processWithGroq(prompt, [client], supabase)
-      await sendMessage(ADMIN_PHONE, `*REPORTE: ${client.name}*\n\n${report}`)
+
+      // Enviar a WhatsApp y Telegram en paralelo
+      const htmlReport = report.replace(/\*(.+?)\*/g, '<b>$1</b>')
+      await Promise.allSettled([
+        sendMessage(ADMIN_PHONE, `*REPORTE: ${client.name}*\n\n${report}`),
+        sendTelegramMessage(`<b>REPORTE: ${client.name}</b>\n\n${htmlReport}`),
+      ])
     }
 
     return new Response('Reports sent')
