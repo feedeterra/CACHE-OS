@@ -6,10 +6,11 @@ import {
 } from 'recharts'
 import { supabase } from '../lib/supabaseClient'
 import {
-  formatCurrency, computeCPA, fillDailyGaps, projectMonthEnd,
+  formatCurrency, computeCPA, computeROAS, fillDailyGaps, projectMonthEnd,
   getKpiStatus, getCtrStatus, getRoasStatus, formatPercent, formatNumber,
   computeScaleProjection
 } from '../lib/mathHelpers'
+import { RANGE_OPTIONS, resolveRange } from '../lib/dateRanges'
 import { syncClient } from '../services/metaApi'
 import BlinkingCursor from '../components/BlinkingCursor'
 import HudButton from '../components/HudButton'
@@ -82,18 +83,19 @@ export default function ClientDashboard() {
   const [ads, setAds] = useState([])
   const [salesByCategory, setSalesByCategory] = useState([])
   const [totalSales, setTotalSales] = useState(0)
+  const [totalRevenue, setTotalRevenue] = useState(0)
   const [loading, setLoading] = useState(true)
   const [demographics, setDemographics] = useState([])
   const [geographic, setGeographic] = useState([])
   const [syncing, setSyncing] = useState(false)
   const [copied, setCopied] = useState(false)
   const [scalePct, setScalePct] = useState(20)
+  const [rangeKey, setRangeKey] = useState('this_month')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
   const today = new Date()
-  const year = today.getFullYear()
-  const month = today.getMonth() + 1
-  const dateFrom = `${year}-${String(month).padStart(2, '0')}-01`
-  const dateTo = today.toISOString().slice(0, 10)
+  const { from: dateFrom, to: dateTo } = resolveRange(rangeKey, customFrom, customTo)
 
   async function loadData() {
     setLoading(true)
@@ -103,7 +105,7 @@ export default function ClientDashboard() {
       supabase.from('campaign_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('adset_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('ad_snapshots').select('*').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
-      supabase.from('portal_sales_daily').select('date, count, category').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
+      supabase.from('portal_sales_daily').select('date, count, revenue, category').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('demographic_snapshots').select('age, gender, spend, impressions, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('geographic_snapshots').select('region, spend, leads, reach').eq('client_id', id).gte('date', dateFrom).lte('date', dateTo),
     ])
@@ -116,6 +118,7 @@ export default function ClientDashboard() {
     const sales = get(5) ?? []
     setSalesByCategory(sales)
     setTotalSales(sales.reduce((s, r) => s + Number(r.count), 0))
+    setTotalRevenue(sales.reduce((s, r) => s + Number(r.revenue || 0), 0))
     setDemographics(get(6) ?? [])
     setGeographic(get(7) ?? [])
     setLoading(false)
@@ -135,7 +138,7 @@ export default function ClientDashboard() {
     setTimeout(() => setCopied(false), 2500)
   }
 
-  useEffect(() => { loadData() }, [id])
+  useEffect(() => { loadData() }, [id, dateFrom, dateTo])
 
   if (loading || !client) {
     return <div className="flex items-center gap-2 font-mono text-xs text-text-dim pt-6">LOADING_CLIENT_DATA <BlinkingCursor /></div>
@@ -163,6 +166,7 @@ export default function ClientDashboard() {
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : null
   const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : null
   const cpaReal = computeCPA(totalSpend, totalSales)
+  const roasReal = computeROAS(totalSpend, totalRevenue)
 
   // Scale simulator for this specific client
   const targetCpaForScale = isLeads ? cpl : (cpaReal || cpa)
@@ -209,13 +213,15 @@ export default function ClientDashboard() {
     { label: 'LEADS', value: String(totalLeads), status: getKpiStatus(totalLeads, goals.target_leads, false), subtext: goals.target_leads ? `META: ${goals.target_leads}` : null },
     { label: 'CPL', value: cpl ? formatCurrency(cpl) : '—', status: getKpiStatus(cpl, goals.target_cpl, true), subtext: goals.target_cpl ? `META: ${formatCurrency(goals.target_cpl)}` : null },
     { label: 'CPA_REAL', value: cpaReal ? formatCurrency(cpaReal) : '—', status: getKpiStatus(cpaReal, bestCpaTarget, true), subtext: totalSales > 0 ? `${totalSales} ventas` : 'SIN VENTAS' },
+    { label: 'ROAS_REAL', value: roasReal ? `${roasReal.toFixed(2)}x` : '—', status: getRoasStatus(roasReal), subtext: totalRevenue > 0 ? formatCurrency(totalRevenue) : 'SIN FACTURACIÓN' },
     { label: 'CTR', value: ctr ? formatPercent(ctr) : '—', status: getCtrStatus(ctr), subtext: 'click-through rate' },
     { label: 'CPM', value: cpm ? formatCurrency(cpm) : '—', status: 'neutral', subtext: 'costo por mil imp.' },
   ] : [
     { label: 'SPEND_MTD', value: formatCurrency(totalSpend), status: 'neutral' },
     { label: 'CPA_META', value: cpa ? formatCurrency(cpa) : '—', status: getKpiStatus(cpa, goals.target_cpa, true), subtext: goals.target_cpa ? `META: ${formatCurrency(goals.target_cpa)}` : null },
     { label: 'CPA_REAL', value: cpaReal ? formatCurrency(cpaReal) : '—', status: getKpiStatus(cpaReal, bestCpaTarget, true), subtext: totalSales > 0 ? `${totalSales} ventas` : 'SIN VENTAS' },
-    { label: 'ROAS', value: roasMeta ? `${roasMeta.toFixed(2)}x` : '—', status: getRoasStatus(roasMeta), subtext: roasMeta && roasMeta < 2 ? 'ALERTA: < 2x' : 'META: > 3x' },
+    { label: 'ROAS_REAL', value: roasReal ? `${roasReal.toFixed(2)}x` : '—', status: getRoasStatus(roasReal), subtext: totalRevenue > 0 ? formatCurrency(totalRevenue) : 'SIN FACTURACIÓN' },
+    { label: 'ROAS_META', value: roasMeta ? `${roasMeta.toFixed(2)}x` : '—', status: getRoasStatus(roasMeta), subtext: roasMeta && roasMeta < 2 ? 'ALERTA: < 2x' : 'META: > 3x' },
     { label: 'CTR', value: ctr ? formatPercent(ctr) : '—', status: getCtrStatus(ctr), subtext: ctr && ctr < 0.7 ? 'FATIGA CREATIVA' : 'click-through rate' },
     { label: 'CPM', value: cpm ? formatCurrency(cpm) : '—', status: 'neutral', subtext: 'competición' },
   ]
@@ -276,8 +282,53 @@ export default function ClientDashboard() {
         </div>
       </div>
 
+      {/* Date Range Selector */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {RANGE_OPTIONS.filter(o => o.key !== 'custom').map((o) => (
+          <button
+            key={o.key}
+            onClick={() => setRangeKey(o.key)}
+            className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 border transition-colors cursor-pointer ${
+              rangeKey === o.key
+                ? 'border-accent text-accent bg-accent/10'
+                : 'border-border/30 text-text-dim hover:text-text hover:border-border/60'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+        <button
+          onClick={() => setRangeKey('custom')}
+          className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 border transition-colors cursor-pointer ${
+            rangeKey === 'custom'
+              ? 'border-accent text-accent bg-accent/10'
+              : 'border-border/30 text-text-dim hover:text-text hover:border-border/60'
+          }`}
+        >
+          Personalizado
+        </button>
+        {rangeKey === 'custom' && (
+          <div className="flex items-center gap-1 ml-1">
+            <input
+              type="date" value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="bg-bg-primary border border-border/40 text-text font-mono text-[9px] px-2 py-1 focus:outline-none focus:border-accent"
+            />
+            <span className="text-text-dim font-mono text-[9px]">→</span>
+            <input
+              type="date" value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="bg-bg-primary border border-border/40 text-text font-mono text-[9px] px-2 py-1 focus:outline-none focus:border-accent"
+            />
+          </div>
+        )}
+        <span className="ml-auto text-[9px] font-mono text-text-dim/50">
+          {dateFrom} → {dateTo}
+        </span>
+      </div>
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 lg:grid-cols-7 gap-2">
         {kpis.map((k) => <KpiCard key={k.label} {...k} />)}
       </div>
 

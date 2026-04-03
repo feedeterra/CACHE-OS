@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
 
   try {
-    const { token } = await req.json()
+    const { token, dateFrom: reqFrom, dateTo: reqTo } = await req.json()
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
     const today = new Date()
     const yyyy = today.getFullYear()
     const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dateFrom = `${yyyy}-${mm}-01`
-    const dateTo = today.toISOString().slice(0, 10)
+    const dateFrom = reqFrom || `${yyyy}-${mm}-01`
+    const dateTo = reqTo || today.toISOString().slice(0, 10)
 
     const [{ data: snapshots }, { data: dailySales }] = await Promise.all([
       supabase.from('meta_snapshots').select('date, spend, leads').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo),
@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
     const totalRevenue = (dailySales ?? []).reduce((s, r) => s + Number(r.revenue || 0), 0)
     const cpaReal = totalSales > 0 ? totalSpend / totalSales : null
     const roasReal = totalSpend > 0 && totalRevenue > 0 ? totalRevenue / totalSpend : null
+    const todaySpend = Number((snapshots ?? []).find((s: { date: string }) => s.date === dateTo)?.spend ?? 0)
 
     // Extract unique categories from CPA targets config
     const cpaTargets = client.kpi_goals?.cpa_targets ?? []
@@ -53,8 +54,9 @@ Deno.serve(async (req) => {
       : []
 
     return new Response(JSON.stringify({
-      client: { name: client.name, monthly_budget: client.monthly_budget, kpi_goals: client.kpi_goals, funnel_type: client.funnel_type },
+      client: { name: client.name, monthly_budget: client.monthly_budget, kpi_goals: client.kpi_goals, funnel_type: client.funnel_type, cpa_mode: client.kpi_goals?.cpa_mode || 'count' },
       totalSpend,
+      todaySpend,
       totalLeads,
       totalSales,
       totalRevenue,

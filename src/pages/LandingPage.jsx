@@ -1,8 +1,44 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import HudPanel from '../components/HudPanel'
 import BlinkingCursor from '../components/BlinkingCursor'
 
+const CLIENTS = [
+  'VEMPRA VIAJES', 'VITALE ORFEBRERÍA', 'HR EXPRESS IDAHO', 'LATE METAL JOYAS',
+  'VEMPRA MENDOZA', 'VARU DISTRIBUIDORA', 'HR EXPRESS MONTANA', 'CASA DURÁN',
+  'RAKAN POPCORN', 'VARU HERRAMIENTAS', 'HR EXPRESS MINNESOTA', 'VERDA JOYERÍA',
+  'HR EXPRESS NEBRASKA', 'TU MOTO BAHÍA BLANCA', 'HR EXPRESS IOWA',
+  'HR EXPRESS WISCONSIN', 'HR EXPRESS ND & SD',
+]
+
+const CALENDLY_URL = 'https://calendly.com/cacheagency/asesoriagratis'
+
+function openCalendly() {
+  if (window.Calendly) {
+    window.Calendly.initPopupWidget({ url: CALENDLY_URL })
+  } else {
+    window.open(CALENDLY_URL, '_blank')
+  }
+}
+
 export default function LandingPage() {
+  useEffect(() => {
+    // Load Calendly widget script once
+    if (!document.getElementById('calendly-script')) {
+      const s = document.createElement('script')
+      s.id = 'calendly-script'
+      s.src = 'https://assets.calendly.com/assets/external/widget.js'
+      s.async = true
+      document.head.appendChild(s)
+
+      // Calendly popup CSS
+      const link = document.createElement('link')
+      link.href = 'https://assets.calendly.com/assets/external/widget.css'
+      link.rel = 'stylesheet'
+      document.head.appendChild(link)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-bg-primary overflow-x-hidden selection:bg-accent/30 selection:text-white">
       {/* HUD Scan Line Effect */}
@@ -42,14 +78,22 @@ export default function LandingPage() {
             Somos la agencia que utiliza tecnología propietaria para gestionar tu inversión. 
             Transparencia radical, IA 24/7 y ejecución táctica de nivel militar.
           </p>
-          <div className="flex flex-wrap gap-4">
-            <button className="bg-accent text-black font-display font-bold px-8 py-4 text-sm hover:bg-white transition-colors uppercase tracking-widest">
-              Solicitar Auditoria Táctica
+
+          {/* CTA → Calendly */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <button 
+              onClick={openCalendly}
+              className="bg-accent text-black font-display font-bold px-8 py-4 text-sm hover:bg-white transition-colors uppercase tracking-widest cursor-pointer"
+            >
+              Solicitar Auditoría Táctica
             </button>
-            <Link to="/login" className="px-8 py-4 border border-white/10 text-white font-mono text-xs hover:border-accent/40 transition-all flex items-center gap-2 uppercase">
-              Ver Demo Live <span className="text-accent animate-pulse">●</span>
+            <Link to="/login" className="px-6 py-4 border border-white/10 text-white font-mono text-xs hover:border-accent/40 transition-all flex items-center gap-2 uppercase">
+              Ver Demo <span className="text-accent animate-pulse">●</span>
             </Link>
           </div>
+          <p className="mt-4 text-[10px] text-text-dim/50 font-mono">
+            // SIN_CONTRATOS · ASESORÍA_GRATIS · 100%_CONFIDENCIAL
+          </p>
         </div>
 
         {/* Decorative Grid Background */}
@@ -58,8 +102,48 @@ export default function LandingPage() {
         </div>
       </header>
 
+      {/* Trust Bar — Stats */}
+      <section className="py-12 px-6 border-y border-white/5 bg-bg-secondary/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            {[
+              { label: 'SPEND GESTIONADO', value: '$25M+' },
+              { label: 'LEADS CAPTURADOS', value: '450K+' },
+              { label: 'KPI ACCURACY', value: '99.8%' },
+              { label: 'TIEMPO DE RESPUESTA', value: '<5ms' },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <p className="text-accent text-3xl font-display font-black mb-2">{stat.value}</p>
+                <p className="text-[10px] text-text-dim font-mono tracking-widest uppercase">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Client Marquee */}
+      <section className="py-6 border-b border-white/5 overflow-hidden">
+        <p className="text-[9px] text-text-dim/30 font-mono tracking-[0.3em] uppercase text-center mb-5">
+          // CLIENTES_ACTIVOS
+        </p>
+        <div className="relative w-full overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-bg-primary to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-bg-primary to-transparent z-10 pointer-events-none"></div>
+          
+          <div className="flex animate-marquee whitespace-nowrap">
+            {[...CLIENTS, ...CLIENTS].map((name, i) => (
+              <span key={i} className="inline-flex items-center mx-6 md:mx-10">
+                <span className="text-accent/40 text-[8px] mr-2">◆</span>
+                <span className="font-display font-bold text-white/40 text-xs md:text-sm tracking-[0.15em] uppercase">{name}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Infrastructure Section (Visual Tour) */}
-      <section className="py-20 px-6 border-t border-white/5 bg-bg-secondary/30">
+      <section className="py-20 px-6 bg-bg-secondary/30">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16">
             <h2 className="text-3xl font-display font-bold text-white mb-4 uppercase tracking-tight">
@@ -120,36 +204,55 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust / Stats Section */}
-      <section className="py-20 px-6 border-y border-white/5">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { label: 'SPEND GESTIONADO', value: '$25M+' },
-            { label: 'LEADS CAPTURADOS', value: '450K+' },
-            { label: 'KPI ACCURACY', value: '99.8%' },
-            { label: 'TIEMPO DE RESPUESTA', value: '<5ms' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <p className="text-accent text-3xl font-display font-black mb-2">{stat.value}</p>
-              <p className="text-[10px] text-text-dim font-mono tracking-widest uppercase">{stat.label}</p>
+      {/* Social Proof — Testimonial */}
+      <section className="py-16 px-6 border-y border-white/5">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-[10px] text-accent font-mono tracking-[0.3em] uppercase mb-8">
+            // CASO_DE_ÉXITO
+          </p>
+          <blockquote className="text-white text-xl md:text-2xl font-sans leading-relaxed mb-6 italic">
+            "En 60 días redujeron nuestro CPA un 42% y duplicaron los leads calificados. 
+            La transparencia del dashboard cambió completamente cómo tomamos decisiones."
+          </blockquote>
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center">
+              <span className="text-accent font-display font-bold text-sm">DR</span>
             </div>
-          ))}
+            <div className="text-left">
+              <p className="text-white font-display font-bold text-sm">Director de Marketing</p>
+              <p className="text-text-dim font-mono text-[10px]">E-COMMERCE // ARGENTINA</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* Final CTA with Scarcity */}
       <section className="py-32 px-6 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-display font-black text-white mb-8 tracking-tighter">
             ¿ESTÁS LISTO PARA EL <br />
             <span className="text-accent">NIVEL TÁCTICO?</span>
           </h2>
-          <p className="text-text-dim text-lg font-sans mb-12">
+          <p className="text-text-dim text-lg font-sans mb-6">
             No aceptamos a todos los clientes. Solo a aquellos que buscan dominar su nicho con infraestructura real.
           </p>
-          <button className="bg-white text-black font-display font-bold px-12 py-5 text-sm hover:bg-accent transition-colors uppercase tracking-[0.3em]">
-            Desplegar ahora
-          </button>
+
+          {/* Scarcity Indicator */}
+          <div className="inline-block border border-accent/20 bg-accent/5 px-6 py-3 mb-10">
+            <p className="text-accent font-mono text-xs tracking-widest uppercase">
+              <span className="animate-pulse inline-block mr-2">●</span>
+              ABRIL 2026: 3 DE 5 CUPOS DISPONIBLES
+            </p>
+          </div>
+
+          <div className="block">
+            <button
+              onClick={openCalendly}
+              className="inline-block bg-white text-black font-display font-bold px-12 py-5 text-sm hover:bg-accent transition-colors uppercase tracking-[0.3em] cursor-pointer"
+            >
+              Solicitar Auditoría Táctica
+            </button>
+          </div>
         </div>
       </section>
 
@@ -160,8 +263,8 @@ export default function LandingPage() {
             © 2026 CACHE AGENCY // ALL RIGHTS RESERVED <BlinkingCursor />
           </p>
           <div className="flex gap-8">
-            <a href="#" className="text-[9px] text-text-dim hover:text-accent font-mono tracking-widest uppercase transition-colors">Twitter // X</a>
-            <a href="#" className="text-[9px] text-text-dim hover:text-accent font-mono tracking-widest uppercase transition-colors">LinkedIn</a>
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-[9px] text-text-dim hover:text-accent font-mono tracking-widest uppercase transition-colors">Twitter // X</a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-[9px] text-text-dim hover:text-accent font-mono tracking-widest uppercase transition-colors">LinkedIn</a>
           </div>
         </div>
       </footer>

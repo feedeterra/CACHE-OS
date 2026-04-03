@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import AdminLayout from './layouts/AdminLayout'
 import PortalLayout from './layouts/PortalLayout'
-import AdminDashboard from './pages/AdminDashboard'
-import AdminClients from './pages/AdminClients'
-import ClientDashboard from './pages/ClientDashboard'
-import ClientPortal from './pages/ClientPortal'
 import LandingPage from './pages/LandingPage'
-import LogsPage from './pages/LogsPage'
 import Login from './pages/Login'
 import AuthCallback from './pages/AuthCallback'
+import ClientPortal from './pages/ClientPortal'
 import HudPanel from './components/HudPanel'
 import BlinkingCursor from './components/BlinkingCursor'
+
+const AdminDashboard  = lazy(() => import('./pages/AdminDashboard'))
+const AdminClients    = lazy(() => import('./pages/AdminClients'))
+const ClientDashboard = lazy(() => import('./pages/ClientDashboard'))
+const LogsPage        = lazy(() => import('./pages/LogsPage'))
 
 function NotFound() {
   return (
@@ -71,7 +73,13 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <AppRoutes />
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+            <p className="font-mono text-xs text-text-dim uppercase tracking-widest">CARGANDO <BlinkingCursor /></p>
+          </div>
+        }>
+          <AppRoutes />
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   )

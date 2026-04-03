@@ -9,16 +9,18 @@ const EMPTY = { name: '', meta_ad_account_id: '', monthly_budget: '', funnel_typ
 
 const GOAL_FIELDS = {
   leads: [
-    { key: 'target_cpl',    label: 'TARGET_CPL ($)',  placeholder: '10' },
-    { key: 'target_leads',  label: 'TARGET_LEADS/MO', placeholder: '300' },
-    { key: 'target_ctr',    label: 'TARGET_CTR (%)',  placeholder: '2.0' },
-    { key: 'max_frequency', label: 'MAX_FREQUENCY',   placeholder: '3.0' },
+    { key: 'target_cpl',       label: 'TARGET_CPL ($)',        placeholder: '10' },
+    { key: 'target_leads',     label: 'TARGET_LEADS/MO',       placeholder: '300' },
+    { key: 'target_revenue',   label: 'TARGET_FACTURACIÓN/MO', placeholder: '1000000' },
+    { key: 'target_ctr',       label: 'TARGET_CTR (%)',        placeholder: '2.0' },
+    { key: 'max_frequency',    label: 'MAX_FREQUENCY',         placeholder: '3.0' },
   ],
   conversions: [
-    { key: 'target_cpa',    label: 'TARGET_CPA ($)',  placeholder: '50' },
-    { key: 'target_roas',   label: 'TARGET_ROAS (x)', placeholder: '3.0' },
-    { key: 'target_ctr',    label: 'TARGET_CTR (%)',  placeholder: '2.0' },
-    { key: 'max_frequency', label: 'MAX_FREQUENCY',   placeholder: '3.0' },
+    { key: 'target_cpa',       label: 'TARGET_CPA ($)',        placeholder: '50' },
+    { key: 'target_roas',      label: 'TARGET_ROAS (x)',       placeholder: '3.0' },
+    { key: 'target_revenue',   label: 'TARGET_FACTURACIÓN/MO', placeholder: '1000000' },
+    { key: 'target_ctr',       label: 'TARGET_CTR (%)',        placeholder: '2.0' },
+    { key: 'max_frequency',    label: 'MAX_FREQUENCY',         placeholder: '3.0' },
   ],
 }
 

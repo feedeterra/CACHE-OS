@@ -20,6 +20,12 @@
   --animate-blink: blink 1s step-end infinite;
   --animate-led: led-pulse 2s ease-in-out infinite;
   --animate-scan: scan 4s linear infinite;
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes blink {

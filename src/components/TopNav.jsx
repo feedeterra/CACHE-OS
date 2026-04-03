@@ -19,7 +19,8 @@ function ClientSwitcher({ clients }) {
   const navigate = useNavigate()
   return (
     <div className="relative md:hidden">
-      <select 
+      <select
+        aria-label="Seleccionar cliente"
         onChange={(e) => e.target.value && navigate(`/admin/client/${e.target.value}`)}
         className="bg-bg-primary border border-accent/20 text-accent font-mono text-[9px] pl-1 pr-4 py-0.5 outline-none appearance-none rounded-none cursor-pointer uppercase tracking-tighter"
         defaultValue=""

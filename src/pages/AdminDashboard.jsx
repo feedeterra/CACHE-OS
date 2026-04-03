@@ -8,6 +8,7 @@ import {
   formatCurrency, computeCPA, fillDailyGaps, projectMonthEnd,
   computeWoW, getPacingAlert, formatPercent
 } from '../lib/mathHelpers'
+import { RANGE_OPTIONS, resolveRange } from '../lib/dateRanges'
 import TerminalLog from '../components/TerminalLog'
 import BlinkingCursor from '../components/BlinkingCursor'
 
@@ -56,13 +57,12 @@ export default function AdminDashboard() {
   const [snapshots, setSnapshots] = useState([])
   const [logs, setLogs]           = useState([])
   const [loading, setLoading]     = useState(true)
-  const [chartRange, setChartRange] = useState('MTD')   // 'MTD' | 'WoW'
+  const [rangeKey, setRangeKey] = useState('this_month')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
-  const today    = new Date()
-  const year     = today.getFullYear()
-  const month    = today.getMonth() + 1
-  const dateFrom = `${year}-${String(month).padStart(2,'0')}-01`
-  const dateTo   = today.toISOString().slice(0, 10)
+  const today = new Date()
+  const { from: dateFrom, to: dateTo } = resolveRange(rangeKey, customFrom, customTo)
 
   async function loadData() {
     setLoading(true)
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
         setLogs((prev) => [...prev, { id: r.id, timestamp: new Date(r.created_at).getTime(), level: r.level, message: r.message }])
       }).subscribe()
     return () => supabase.removeChannel(ch)
-  }, [])
+  }, [dateFrom, dateTo])
 
   const totalSpend = snapshots.reduce((s, r) => s + Number(r.spend), 0)
   const totalLeads = snapshots.reduce((s, r) => s + Number(r.leads ?? 0), 0)
@@ -146,6 +146,43 @@ export default function AdminDashboard() {
           <span className="flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-accent" /> <span className="hidden xs:inline">META:</span>SYNC</span>
           <span className="hidden sm:flex items-center gap-1.5 border border-white/5 px-2 py-1 rounded-sm"><Led color="text-success" /> <span className="hidden xs:inline">WA:</span>ACTIVO</span>
         </div>
+      </div>
+
+      {/* Date Range Selector */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {RANGE_OPTIONS.filter(o => o.key !== 'custom').map((o) => (
+          <button
+            key={o.key}
+            onClick={() => setRangeKey(o.key)}
+            className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 border transition-colors cursor-pointer ${
+              rangeKey === o.key
+                ? 'border-accent text-accent bg-accent/10'
+                : 'border-border/30 text-text-dim hover:text-text hover:border-border/60'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+        <button
+          onClick={() => setRangeKey('custom')}
+          className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 border transition-colors cursor-pointer ${
+            rangeKey === 'custom'
+              ? 'border-accent text-accent bg-accent/10'
+              : 'border-border/30 text-text-dim hover:text-text hover:border-border/60'
+          }`}
+        >
+          Personalizado
+        </button>
+        {rangeKey === 'custom' && (
+          <div className="flex items-center gap-1 ml-1">
+            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
+              className="bg-bg-primary border border-border/40 text-text font-mono text-[9px] px-2 py-1 focus:outline-none focus:border-accent" />
+            <span className="text-text-dim font-mono text-[9px]">→</span>
+            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
+              className="bg-bg-primary border border-border/40 text-text font-mono text-[9px] px-2 py-1 focus:outline-none focus:border-accent" />
+          </div>
+        )}
+        <span className="ml-auto text-[9px] font-mono text-text-dim/50">{dateFrom} → {dateTo}</span>
       </div>
 
       {/* Stat cards — asymmetric: 3 igual + 1 destacada */}
