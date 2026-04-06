@@ -335,6 +335,43 @@ export default function ClientPortal() {
             big
           />
         </div>
+
+        {/* Desglose por Producto */}
+        {data?.productMetrics?.length > 0 && (
+          <div className="border border-border/20 bg-bg-secondary p-4 mt-2">
+            <p className="text-[9px] text-text-dim/60 font-mono uppercase tracking-widest mb-3">
+              INVERSIÓN Y CPA — POR PRODUCTO
+            </p>
+            <div className="space-y-2">
+              {data.productMetrics.map((product, i) => (
+                <div key={i} className="border border-border/30 bg-bg-primary/40 p-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="text-[10px] font-mono font-bold text-accent uppercase">
+                      {product.name}
+                    </p>
+                    <p className={`text-[9px] font-mono ${product.cpa && product.target && product.cpa <= product.target ? 'text-success' : product.cpa && product.target && product.cpa > product.target ? 'text-danger' : 'text-text-dim'}`}>
+                      {product.cpa ? formatCurrencyAR(product.cpa) : '—'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-[8px] font-mono">
+                    <div>
+                      <p className="text-text-dim/60 mb-0.5">INVERTIDO</p>
+                      <p className="text-accent font-bold">{formatCurrencyAR(product.spend)}</p>
+                    </div>
+                    <div>
+                      <p className="text-text-dim/60 mb-0.5">VENTAS</p>
+                      <p className="text-text font-bold">{product.sales}</p>
+                    </div>
+                    <div>
+                      <p className="text-text-dim/60 mb-0.5">TARGET CPA</p>
+                      <p className="text-text-dim font-bold">{formatCurrencyAR(product.target)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Sección 2: Resultados de ventas ── */}

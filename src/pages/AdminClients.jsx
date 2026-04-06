@@ -192,13 +192,16 @@ export default function AdminClients() {
               {(form.kpi_goals?.cpa_targets ?? []).length === 0 && (
                 <p className="text-[9px] text-text-dim/50 font-mono">SIN TARGETS — CLICK [+] ADD PARA AGREGAR</p>
               )}
+              <p className="text-[8px] text-text-dim/40 font-mono mb-2">
+                💡 Usa EXACTAMENTE los nombres de tus campañas. Soporta múltiples palabras clave separadas por coma (ej: "bicicletas, bikes")
+              </p>
               <div className="space-y-1.5">
                 {(form.kpi_goals?.cpa_targets ?? []).map((t, i) => (
                   <div key={i} className="flex gap-2 items-center">
                     <input
                       value={t.name}
                       onChange={(e) => updateCpaTarget(i, 'name', e.target.value)}
-                      placeholder="Ej: Ropa exterior"
+                      placeholder="Ej: bicicletas o bicicletas, bikes"
                       className="flex-1 bg-bg-primary border border-border/40 text-text font-mono text-xs px-2 py-1.5 rounded-none focus:outline-none focus:border-accent placeholder:text-text-dim/40"
                     />
                     <input

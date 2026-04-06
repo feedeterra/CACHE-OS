@@ -34,9 +34,12 @@ Deno.serve(async (req) => {
     const dateFrom = reqFrom || `${yyyy}-${mm}-01`
     const dateTo = reqTo || today.toISOString().slice(0, 10)
 
-    const [{ data: snapshots }, { data: dailySales }] = await Promise.all([
+    const [{ data: snapshots }, { data: dailySales }, { data: campaigns }, { data: adsets }, { data: ads }] = await Promise.all([
       supabase.from('meta_snapshots').select('date, spend, leads').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo),
       supabase.from('portal_sales_daily').select('date, count, revenue, category').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo).order('date', { ascending: false }),
+      supabase.from('campaign_snapshots').select('*').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo),
+      supabase.from('adset_snapshots').select('*').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo),
+      supabase.from('ad_snapshots').select('*').eq('client_id', client.id).gte('date', dateFrom).lte('date', dateTo),
     ])
 
     const totalSpend = (snapshots ?? []).reduce((s, r) => s + Number(r.spend), 0)
@@ -53,6 +56,42 @@ Deno.serve(async (req) => {
       ? cpaTargets.map((t: { name: string }) => t.name.toLowerCase())
       : []
 
+    // Calcular spend y CPA por producto basado en nombres de campañas/adsets
+    const productMetrics = cpaTargets.map((target: { name: string, target: number }) => {
+      const keywords = target.name
+        .toLowerCase()
+        .split(',')
+        .map((k: string) => k.trim())
+        .filter((k: string) => k)
+
+      let productSpend = 0
+      const allRows = [...(campaigns ?? []), ...(adsets ?? []), ...(ads ?? [])]
+
+      for (const row of allRows) {
+        const name = (row.ad_name || row.adset_name || row.campaign_name || '').toLowerCase()
+        if (keywords.some((kw: string) => name.includes(kw))) {
+          productSpend += Number(row.spend ?? 0)
+        }
+      }
+
+      const salesByCategory = (dailySales ?? [])
+        .filter((d: { category?: string }) => {
+          const cat = (d.category || 'general').toLowerCase()
+          return keywords.some((kw: string) => cat.includes(kw))
+        })
+        .reduce((s: number, d: { count: number }) => s + Number(d.count), 0)
+
+      const productCpa = salesByCategory > 0 && productSpend > 0 ? productSpend / salesByCategory : null
+
+      return {
+        name: target.name,
+        target: target.target,
+        spend: productSpend,
+        sales: salesByCategory,
+        cpa: productCpa,
+      }
+    })
+
     return new Response(JSON.stringify({
       client: { name: client.name, monthly_budget: client.monthly_budget, kpi_goals: client.kpi_goals, funnel_type: client.funnel_type, cpa_mode: client.kpi_goals?.cpa_mode || 'count' },
       totalSpend,
@@ -64,6 +103,7 @@ Deno.serve(async (req) => {
       roasReal,
       dailySales: dailySales ?? [],
       categories,
+      productMetrics,
     }), { headers: { ...cors, 'Content-Type': 'application/json' } })
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), {

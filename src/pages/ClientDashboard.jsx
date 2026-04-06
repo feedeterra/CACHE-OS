@@ -175,7 +175,7 @@ export default function ClientDashboard() {
   const cpaTargets = goals.cpa_targets ?? []
   const bestCpaTarget = cpaTargets.length > 0 ? Math.min(...cpaTargets.map((t) => t.target)) : null
 
-  // CPA per category: match campaign/ad names to category, sum matching spend / sales
+  // CPA per category: match campaign/ad names to category keywords, sum matching spend / sales
   function computeCategoryMetrics() {
     if (cpaTargets.length === 0) return []
     const salesByCat = {}
@@ -187,12 +187,17 @@ export default function ClientDashboard() {
       const catName = t.name.toLowerCase()
       const catSales = salesByCat[catName] || 0
 
-      // Match ads/campaigns whose names contain the category name
+      // Parse multiple keywords (comma-separated): "bicicletas, bikes" → ["bicicletas", "bikes"]
+      const keywords = catName.split(',').map(k => k.trim().toLowerCase()).filter(k => k)
+
       let catSpend = 0
-      const allRows = [...campaigns, ...ads]
+      const allRows = [...campaigns, ...adsets, ...ads]
       for (const r of allRows) {
-        const name = (r.ad_name || r.campaign_name || '').toLowerCase()
-        if (name.includes(catName)) catSpend += Number(r.spend ?? 0)
+        const name = (r.ad_name || r.adset_name || r.campaign_name || '').toLowerCase()
+        // Match if ANY keyword is found in the name (OR logic)
+        if (keywords.some(kw => name.includes(kw))) {
+          catSpend += Number(r.spend ?? 0)
+        }
       }
       // If no name match, use proportional split
       if (catSpend === 0 && totalSpend > 0 && totalSales > 0) {
@@ -367,6 +372,9 @@ export default function ClientDashboard() {
               REGISTRA VENTAS DESDE EL PORTAL PARA CALCULAR CPA REAL POR CATEGORÍA
             </p>
           )}
+          <p className="text-text-dim/40 font-mono text-[8px] mt-2 text-left leading-relaxed">
+            💡 EN AJUSTES: USA LOS NOMBRES EXACTOS DE LAS CAMPAÑAS. SOPORTA MÚLTIPLES PALABRAS CLAVE SEPARADAS POR COMA (EJ: "BICICLETAS, BIKES")
+          </p>
         </div>
       )}
 
