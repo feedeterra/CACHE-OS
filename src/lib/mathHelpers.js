@@ -19,13 +19,14 @@ export function formatCurrency(value) {
   }).format(value)
 }
 
-/** Formato argentino: $1.000.000 (puntos como separador de miles, sin decimales) */
+/** Formato argentino: $1.000.000 para valores >= 100, $0,28 para valores < 100 */
 export function formatCurrencyAR(value) {
   if (value == null) return '—'
+  const decimals = value < 100 ? 2 : 0
   return '$' + new Intl.NumberFormat('es-AR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.round(value))
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value)
 }
 
 /** Formato argentino para números sin símbolo: 1.000 */

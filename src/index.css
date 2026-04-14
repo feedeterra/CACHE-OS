@@ -48,9 +48,18 @@
   100% { background-position: 200% 0; }
 }
 
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 body {
-  background: radial-gradient(ellipse at 50% 0%, #1c2333 0%, #0D1117 65%);
-  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+  background-color: #e8e6e2; /* Sincronizado con el footer */
   font-family: var(--font-sans);
 }
 

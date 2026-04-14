@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
-import { motion, useInView, animate, AnimatePresence } from 'framer-motion'
+import { motion, useInView, animate, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
@@ -25,24 +25,24 @@ const STATS = [
 
 const TESTIMONIALS = [
   {
-    quote: 'En 2 semanas optimizamos el catálogo y supimos exactamente qué se vendía. Escalamos los productos ganadores y validamos precios con datos reales, no con intuición.',
-    name: 'Nico', company: 'Vempra',
-  },
-  {
-    quote: 'No sabíamos cuánto nos costaba cada cliente. Con CACHE empezamos a medirlo de verdad: usamos IA y CRM para dirigirnos solo a los que realmente iban a comprar.',
-    name: 'Vale', company: 'Winco',
-  },
-  {
-    quote: 'Cubren todo de punta a punta: estrategia, contenido, Meta, CRM, API de conversiones, dashboard, IA y Tiendanube. Dejamos de depender de cinco proveedores distintos.',
-    name: 'Ale', company: 'Varu Distribuidora',
-  },
-  {
     quote: 'En 60 días bajamos el CPA un 42% y duplicamos los leads calificados. Ahora tomamos decisiones con datos, no con suposiciones.',
-    name: 'Rubén', company: 'Bellita',
+    name: 'Rubén', company: 'Bellita', metric: 'CPA -42%',
+  },
+  {
+    quote: 'En 15 días identificamos los productos ganadores y el ROAS real subió un 40%. Cortamos lo que no funcionaba y el costo por venta bajó un 35%.',
+    name: 'Nico', company: 'Vempra', metric: 'ROAS +40%',
+  },
+  {
+    quote: 'No sabíamos cuánto nos costaba cada cliente. Redujimos el costo por lead a la mitad en el primer mes de trabajo con CACHE.',
+    name: 'Vale', company: 'Winco', metric: 'CPL -50%',
+  },
+  {
+    quote: 'Consolidar la pauta nos permitió escalar la inversión un 3x manteniendo el CPA bajo. El ROAS real mejoró un 60% en el primer trimestre.',
+    name: 'Ale', company: 'Varu Distribuidora', metric: 'ESCALA 3X',
   },
 ]
 
-const WA = 'https://wa.me/5492346306562?text=Hola%2C%20quiero%20hablar%20con%20un%20experto%20para%20generar%20una%20reuni%C3%B3n'
+const WA = 'https://wa.me/5492346306562?text=Hola%2C%20quiero%20que%20analicen%20mi%20cuenta%20de%20Meta%20Ads%20y%20ver%20c%C3%B3mo%20mejorar%20mis%20resultados'
 
 // ─── Animation variants ──────────────────────────────────────────────────────
 
@@ -60,6 +60,17 @@ const stagger = {
 const slideRight = {
   hidden: { opacity: 0, x: 32 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+}
+
+const floating = {
+  animate: {
+    y: [0, -4, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
 }
 
 // ─── Hooks ──────────────────────────────────────────────────────────────────
@@ -169,81 +180,71 @@ function StatCard({ raw, prefix, suffix, label, context, light }) {
   )
 }
 
-function TestimonialSlider() {
-  const [index, setIndex] = useState(0)
-  const [dir, setDir] = useState(1)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDir(1)
-      setIndex(prev => (prev + 1) % TESTIMONIALS.length)
-    }, 6000)
-    return () => clearInterval(timer)
-  }, [])
-
-  function goTo(i) {
-    setDir(i > index ? 1 : -1)
-    setIndex(i)
-  }
-
-  const t = TESTIMONIALS[index]
-
+function TestimonialGrid() {
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{
-        backgroundColor: '#fff', border: '1px solid #d8d4cd',
-        borderRadius: '16px', padding: 'clamp(24px, 5vw, 48px) clamp(20px, 5vw, 40px)',
-        minHeight: 'unset', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', textAlign: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.04)', overflow: 'hidden', position: 'relative',
-      }}>
-        <AnimatePresence mode="wait" custom={dir}>
-          <motion.div
-            key={index}
-            custom={dir}
-            initial={{ opacity: 0, x: dir * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: dir * -40 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-          >
-            <p style={{
-              fontSize: 'clamp(0.9rem, 2.5vw, 1.2rem)', fontStyle: 'italic',
-              color: '#1a1a1a', lineHeight: 1.6, marginBottom: '20px',
-              fontWeight: 500, letterSpacing: '-0.01em', maxWidth: '700px',
-            }}>
-              "{t.quote}"
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+    <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+      {TESTIMONIALS.map((t, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            backgroundColor: '#fff',
+            border: '1px solid #d8d4cd',
+            borderRadius: '12px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.02)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: 44, height: 44, borderRadius: '50%',
+                width: 32, height: 32, borderRadius: '50%',
                 backgroundColor: '#f8f7f4', border: '1px solid #d8d4cd',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, color: '#d48a0a', fontSize: '1rem',
+                fontWeight: 800, color: '#d48a0a', fontSize: '0.75rem',
               }}>
                 {t.name.charAt(0)}
               </div>
               <div>
-                <p style={{ fontWeight: 700, color: '#111', fontSize: '1rem' }}>{t.name}</p>
-                <p style={{ color: '#d48a0a', fontSize: '0.85rem', fontWeight: 600 }}>{t.company}</p>
+                <p style={{ fontWeight: 800, color: '#111', fontSize: '0.85rem', lineHeight: 1.2 }}>{t.name}</p>
+                <p style={{ color: '#d48a0a', fontSize: '0.7rem', fontWeight: 600 }}>{t.company}</p>
               </div>
             </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Dots */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '28px' }}>
-        {TESTIMONIALS.map((_, i) => (
-          <motion.button
-            key={i}
-            onClick={() => goTo(i)}
-            animate={{ width: i === index ? 24 : 8, backgroundColor: i === index ? '#d48a0a' : '#d8d4cd' }}
-            transition={{ duration: 0.3 }}
-            style={{ height: 8, borderRadius: 4, border: 'none', cursor: 'pointer' }}
-          />
-        ))}
-      </div>
+            <motion.div 
+              variants={floating}
+              animate="animate"
+              style={{
+                backgroundColor: 'rgba(212,138,10,0.08)',
+                border: '1px solid rgba(212,138,10,0.25)',
+                borderRadius: '6px',
+                padding: '4px 10px',
+                color: '#d48a0a',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+              }}
+            >
+              {t.metric}
+            </motion.div>
+          </div>
+          
+          <p style={{
+            fontSize: '0.88rem',
+            fontStyle: 'italic',
+            color: '#333',
+            lineHeight: 1.6,
+            margin: 0,
+            fontWeight: 500,
+          }}>
+            "{t.quote}"
+          </p>
+        </motion.div>
+      ))}
     </div>
   )
 }
@@ -302,16 +303,44 @@ function RotatingH1({ mobile = false }) {
 
 export default function LandingPage() {
   const heroRef = useRef(null)
+  const [strategy, setStrategy] = useState('ecommerce')
+  
+  // Scroll Progress Logic
+  const { scrollYProgress } = useScroll()
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  })
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", backgroundColor: '#f0eeea', color: '#1a1a1a' }}
          className="min-h-screen overflow-x-hidden">
 
+      {/* ── SCROLL PROGRESS BAR ── */}
+      <motion.div
+        style={{
+          scaleX,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          backgroundColor: '#d48a0a',
+          transformOrigin: '0%',
+          zIndex: 100,
+          boxShadow: '0 0 10px rgba(212,138,10,0.4)',
+        }}
+      />
+
       {/* ── NAV ── */}
       <nav style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderBottom: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}
            className="fixed top-0 w-full z-40 px-5 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>CACHE</span>
+          <div className="flex items-center gap-2.5">
+            <div style={{ width: 10, height: 10, backgroundColor: '#d48a0a', transform: 'rotate(45deg)', borderRadius: '1px' }} />
+            <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>CACHE</span>
+          </div>
           <Link to="/login" style={{ color: '#aaa', fontSize: '0.85rem', fontWeight: 500 }}
                 className="hover:text-white transition-colors">
             Acceso clientes
@@ -325,7 +354,7 @@ export default function LandingPage() {
         style={{
           minHeight: '100svh',
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          padding: '100px 24px 48px',
+          padding: 'clamp(80px, 12vh, 120px) 24px 40px',
           position: 'relative', overflow: 'hidden',
           backgroundColor: '#111',
         }}
@@ -378,40 +407,44 @@ export default function LandingPage() {
             className="flex md:hidden flex-col items-center text-center"
           >
             <motion.div variants={fadeUp} style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
               backgroundColor: '#f5e6c8', border: '1px solid #e8c87a',
-              borderRadius: '100px', padding: '4px 12px', marginBottom: '16px',
+              borderRadius: '100px', padding: '5px 16px', marginBottom: '20px',
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#d48a0a', display: 'inline-block' }} />
-              <span style={{ color: '#7a4e00', fontSize: '0.72rem', fontWeight: 600 }}>Agencia de Performance</span>
+              <div style={{ width: 6, height: 6, backgroundColor: '#d48a0a', transform: 'rotate(45deg)', borderRadius: '1px' }} />
+              <span style={{ color: '#7a4e00', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.02em' }}>Agencia de Performance</span>
             </motion.div>
 
             <RotatingH1 mobile />
 
             <motion.p variants={fadeUp} style={{ fontSize: '0.95rem', color: '#aaa', lineHeight: 1.6, marginTop: '16px', width: '100%' }}>
-              Validamos tu producto en <strong style={{ color: '#fff' }}>3 a 7 días</strong> y escalamos lo que funciona.
+              Si invertís en publicidad y no sabés exactamente cuánto te cuesta cada venta, ese es tu problema. Lo resolvemos en <strong style={{ color: '#fff' }}>3 a 7 días</strong>.
+            </motion.p>
+
+            <motion.p variants={fadeUp} style={{ fontSize: '0.72rem', color: 'rgba(212,138,10,0.8)', fontWeight: 600, marginTop: '10px', letterSpacing: '0.04em' }}>
+              2 LUGARES DISPONIBLES ESTE MES
             </motion.p>
 
             {/* Mini stats row */}
-            <motion.div variants={fadeUp} style={{ display: 'flex', gap: '0', marginTop: '20px', width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 0' }}>
+            <motion.div variants={fadeUp} style={{ display: 'flex', gap: '0', marginTop: '16px', width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '10px 0' }}>
               {[
                 { n: '+64', label: 'empresas' },
                 { n: '+315', label: 'productos' },
                 { n: '$24M', label: 'gestionados' },
               ].map((s, i) => (
                 <div key={i} style={{ flex: 1, textAlign: 'center', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
-                  <p style={{ fontWeight: 800, color: '#d48a0a', fontSize: '1.1rem', lineHeight: 1 }}>{s.n}</p>
-                  <p style={{ color: '#555', fontSize: '0.65rem', marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
+                  <p style={{ fontWeight: 800, color: '#d48a0a', fontSize: '1rem', lineHeight: 1 }}>{s.n}</p>
+                  <p style={{ color: '#555', fontSize: '0.6rem', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
                 </div>
               ))}
             </motion.div>
 
-            <motion.div variants={fadeUp} style={{ marginTop: '20px', width: '100%' }}>
+            <motion.div variants={fadeUp} style={{ marginTop: '16px', width: '100%' }}>
               <motion.a href={WA} target="_blank" rel="noopener noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  backgroundColor: '#d48a0a', color: '#fff', fontWeight: 700, fontSize: '0.95rem',
-                  padding: '13px 20px', borderRadius: '10px', textDecoration: 'none', width: '100%',
+                  backgroundColor: '#d48a0a', color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+                  padding: '12px 20px', borderRadius: '10px', textDecoration: 'none', width: '100%',
                   boxShadow: '0 4px 20px rgba(212,138,10,0.32)',
                 }}
                 whileTap={{ scale: 0.97 }} transition={{ duration: 0.15 }}
@@ -419,7 +452,7 @@ export default function LandingPage() {
                 <WhatsAppIcon />
                 Analizamos tu situación gratis →
               </motion.a>
-              <p style={{ color: '#555', fontSize: '0.72rem', marginTop: '8px' }}>Sin compromiso · Respondemos en el día</p>
+              <p style={{ color: '#555', fontSize: '0.68rem', marginTop: '6px' }}>Sin compromiso · Respondemos en el día</p>
             </motion.div>
           </motion.div>
 
@@ -431,21 +464,23 @@ export default function LandingPage() {
               style={{ maxWidth: '620px', display: 'flex', flexDirection: 'column' }}
             >
               <motion.div variants={fadeUp} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
                 backgroundColor: '#f5e6c8', border: '1px solid #e8c87a',
-                borderRadius: '100px', padding: '5px 14px', marginBottom: '28px',
+                borderRadius: '100px', padding: '6px 18px', marginBottom: '28px',
                 alignSelf: 'flex-start',
               }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#d48a0a', display: 'inline-block' }} />
-                <span style={{ color: '#7a4e00', fontSize: '0.78rem', fontWeight: 600 }}>Agencia de Performance</span>
+                <div style={{ width: 7, height: 7, backgroundColor: '#d48a0a', transform: 'rotate(45deg)', borderRadius: '1px' }} />
+                <span style={{ color: '#7a4e00', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.02em' }}>Agencia de Performance</span>
               </motion.div>
 
               <RotatingH1 />
 
-              <motion.p variants={fadeUp} style={{ fontSize: '1.05rem', color: '#aaa', lineHeight: 1.75, marginTop: '28px', marginBottom: '36px', maxWidth: '500px' }}>
-                Validamos cualquier producto o servicio en el mercado argentino en{' '}
-                <strong style={{ color: '#fff', fontWeight: 700 }}>3 a 7 días</strong>.
-                Métricas reales y un proceso que escala basado en datos, no en intuición.
+              <motion.p variants={fadeUp} style={{ fontSize: '1.05rem', color: '#aaa', lineHeight: 1.75, marginTop: '28px', marginBottom: '8px', maxWidth: '500px' }}>
+                Si invertís en publicidad y todavía no sabés exactamente cuánto te cuesta cada venta, ese es tu problema. Lo resolvemos con datos reales en <strong style={{ color: '#fff', fontWeight: 700 }}>3 a 7 días</strong>.
+              </motion.p>
+
+              <motion.p variants={fadeUp} style={{ fontSize: '0.75rem', color: 'rgba(212,138,10,0.8)', fontWeight: 600, marginBottom: '28px', letterSpacing: '0.05em' }}>
+                2 LUGARES DISPONIBLES ESTE MES
               </motion.p>
 
               <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -460,9 +495,9 @@ export default function LandingPage() {
                   whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}
                 >
                   <WhatsAppIcon />
-                  Analizamos tu situación gratis →
+                  Pedí tu diagnóstico gratuito →
                 </motion.a>
-                <p style={{ color: '#555', fontSize: '0.78rem', lineHeight: 1.5 }}>Sin compromiso<br />Respondemos en el día</p>
+                <p style={{ color: '#555', fontSize: '0.78rem', lineHeight: 1.5 }}>30 min · Sin compromiso<br />Respondemos en el día</p>
               </motion.div>
             </motion.div>
 
@@ -532,7 +567,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── STATS ── */}
-      <section style={{ borderTop: '1px solid #d8d4cd', borderBottom: '1px solid #d8d4cd', backgroundColor: '#e8e6e2', padding: '56px 20px' }}>
+      <section style={{ borderTop: '1px solid #d8d4cd', borderBottom: '1px solid #d8d4cd', backgroundColor: '#e8e6e2', padding: 'clamp(40px, 6vw, 64px) 20px' }}>
         <motion.div
           className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8"
           initial="hidden"
@@ -549,10 +584,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── MARQUEE ── */}
-      <section style={{ padding: '28px 0', borderBottom: '1px solid #d8d4cd', overflow: 'hidden', backgroundColor: '#f0eeea' }}>
-        <p style={{ textAlign: 'center', fontSize: '0.7rem', color: '#bbb', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px' }}>
-          Confiaron en nosotros
-        </p>
+      <section style={{ padding: '16px 0', borderBottom: '1px solid #d8d4cd', overflow: 'hidden', backgroundColor: '#f0eeea' }}>
         <div className="relative w-full overflow-hidden">
           <div className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
                style={{ background: 'linear-gradient(to right, #f0eeea, transparent)' }} />
@@ -570,77 +602,85 @@ export default function LandingPage() {
       </section>
 
 
-      {/* ── DOS CAMINOS ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#e8e6e2' }}>
-        <div className="max-w-6xl mx-auto">
+      {/* ── FILTRO ── */}
+      <section style={{ padding: 'clamp(42px, 8vw, 96px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', bottom: '-10%', right: '-5%',
+          width: '50%', height: '70%',
+          background: 'radial-gradient(ellipse, rgba(245,166,35,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 md:gap-16 items-start" style={{ position: 'relative', zIndex: 1 }}>
           <motion.div
-            className="text-center mb-16"
+            className="w-full lg:w-1/2"
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={slideRight}
+          >
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '16px' }}>
+              No aceptamos<br />a todos.<br />
+              <span style={{ color: '#f5a623' }}>Aceptamos<br />a los que van en serio.</span>
+            </h2>
+            <p style={{ color: '#aaa', lineHeight: 1.6, fontSize: '0.95rem' }}>
+              Si llegaste hasta acá, probablemente sos de los que entienden que escalar requiere proceso, no suerte. Eso ya es suficiente para hablar.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="w-full lg:w-1/2"
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
           >
-            <motion.div variants={fadeUp}><SectionLabel>El proceso se adapta a cómo vendés</SectionLabel></motion.div>
-            <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111', lineHeight: 1.05, marginBottom: '24px' }}>
-              Dos formas de vender.<br />
-              <span style={{ color: '#d48a0a' }}>Un solo proceso.</span>
-            </motion.h2>
-            <motion.p variants={fadeUp} style={{ fontSize: '1.1rem', color: '#666', lineHeight: 1.7, maxWidth: '680px', margin: '0 auto' }}>
-              No somos un proveedor externo; aprendemos de tus productos, entendemos a tu cliente y armamos una estrategia a medida para que escales con <strong style={{ color: '#111' }}>certeza</strong>, no con suposiciones.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            className="grid md:grid-cols-2 gap-5"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={stagger}
-          >
-            <motion.div
-              variants={fadeUp}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              style={{ border: '1px solid #d8d4cd', borderRadius: '16px', padding: '36px', backgroundColor: '#f0eeea' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', color: '#999', textTransform: 'uppercase', marginBottom: '16px' }}>Venta directa</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111', marginBottom: '14px', lineHeight: 1.2 }}>Mi cliente compra solo.</h3>
-              <p style={{ color: '#666', lineHeight: 1.7, marginBottom: '28px', fontSize: '0.95rem' }}>
-                Productos físicos o digitales. Checkout, pago, entrega. Cuando la oferta, el creativo y la audiencia están alineados, el producto se vende solo. El problema es encontrar ese punto de equilibrio sin quemar el presupuesto.
-              </p>
-              <div style={{ borderTop: '1px solid #d8d4cd', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>Métrica que define tu rentabilidad</p>
-                <p style={{ fontWeight: 700, color: '#111', fontSize: '1rem' }}>CPA real por venta</p>
-              </div>
+            <motion.div variants={fadeUp}>
+              <SectionLabel light>Esto es para vos si...</SectionLabel>
             </motion.div>
-
-            <motion.div
-              variants={slideRight}
-              whileHover={{ y: -4, boxShadow: '0 8px 48px rgba(212,138,10,0.18)', transition: { duration: 0.2 } }}
-              style={{ border: '2px solid #d48a0a', borderRadius: '16px', padding: '36px', backgroundColor: '#fdf7ec', boxShadow: '0 0 32px rgba(212,138,10,0.1)' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', color: '#d48a0a', textTransform: 'uppercase', marginBottom: '16px' }}>Venta por conversación</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111', marginBottom: '14px', lineHeight: 1.2 }}>Mi cliente me escribe antes de comprar.</h3>
-              <p style={{ color: '#666', lineHeight: 1.7, marginBottom: '28px', fontSize: '0.95rem' }}>
-                Cerrás por mensaje, por llamada, por visita. Ticket alto, decisión más lenta. Acá el creativo tiene que atraer al cliente correcto, no a cualquiera. Un lead barato que no cierra es más caro que uno caro que sí.
-              </p>
-              <div style={{ borderTop: '1px solid #fde68a', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>Métrica que define tu rentabilidad</p>
-                <p style={{ fontWeight: 700, color: '#111', fontSize: '1rem' }}>CPA real por lead que cierra</p>
-              </div>
+            {[
+              'Tenés un producto o servicio y querés saber si tiene mercado',
+              <span>Estás invirtiendo (o dispuesto a invertir) desde <strong style={{ color: "#fff" }}>USD 30 diarios</strong> en pauta</span>,
+              'Vendés por WhatsApp, por visita, por llamada o por checkout',
+              'Querés escalar sin quemar presupuesto en pruebas sin método',
+              'Te tomás el mercado argentino en serio y querés competir de verdad',
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                  <svg width="8" height="6" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4L3.5 6.5L9 1" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p style={{ color: '#d4d0c8', fontSize: '0.9rem', lineHeight: 1.5 }}>{item}</p>
+              </motion.div>
+            ))}
+            <motion.div variants={fadeUp} style={{ marginTop: '28px' }}>
+              <motion.a
+                href={WA}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  backgroundColor: '#d48a0a', color: '#fff',
+                  fontWeight: 700, fontSize: '0.9rem',
+                  padding: '12px 22px', borderRadius: '8px',
+                  textDecoration: 'none',
+                }}
+                whileHover={{ backgroundColor: '#b87608' }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
+              >
+                Pedí tu diagnóstico gratuito →
+              </motion.a>
             </motion.div>
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-            viewport={{ once: true }} transition={{ delay: 0.3, duration: 0.6 }}
-            style={{ textAlign: 'center', color: '#666', marginTop: '36px', fontSize: '1rem', lineHeight: 1.7 }}
-          >
-            El proceso es el mismo. Lo que cambia es qué medimos como conversión.<br />
-            Empezamos entendiendo cómo vendés, y construimos la estrategia desde ahí.
-          </motion.p>
         </div>
       </section>
 
       {/* ── FASE 1 ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#f0eeea', borderTop: '1px solid #d8d4cd', borderBottom: '1px solid #d8d4cd' }}>
+      <section style={{ padding: 'clamp(42px, 8vw, 96px) 20px', backgroundColor: '#f0eeea', borderTop: '1px solid #d8d4cd', borderBottom: '1px solid #d8d4cd' }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -648,7 +688,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: '-60px' }}
               variants={stagger}
             >
-              <motion.div variants={fadeUp}><FaseTag>FASE 1 · DÍA 1 AL 7</FaseTag></motion.div>
+              <motion.div variants={fadeUp}><FaseTag>FASE 1 · VALIDAR ANTES DE QUEMAR</FaseTag></motion.div>
               <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, color: '#111', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '20px' }}>
                 Cualquier producto.<br />
                 Cualquier catálogo.<br />
@@ -697,7 +737,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FASE 2: CPA REAL ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: 'clamp(42px, 8vw, 96px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
         {/* Fondo glow naranja difuso — animated pulse */}
         <motion.div
           animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.08, 1] }}
@@ -713,22 +753,18 @@ export default function LandingPage() {
 
         <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
           <motion.div
-            className="text-center mb-14"
+            className="text-left mb-14"
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
           >
-            <motion.div variants={fadeUp}>
-              <div style={{ display: 'inline-block', backgroundColor: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.3)', borderRadius: '6px', padding: '4px 12px', marginBottom: '20px' }}>
-                <span style={{ color: '#f5a623', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em' }}>FASE 2 · LA MÉTRICA QUE IMPORTA</span>
-              </div>
-            </motion.div>
+            <motion.div variants={fadeUp}><FaseTag>FASE 2 · MEDIR LO QUE IMPORTA</FaseTag></motion.div>
             <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '16px' }}>
               El ROAS miente.<br />
               El <span style={{ color: '#f5a623' }}>CPA real</span> decide<br />
               si tu negocio es rentable.
             </motion.h2>
-            <motion.p variants={fadeUp} style={{ color: '#888', fontSize: '1rem', maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>
+            <motion.p variants={fadeUp} style={{ color: '#888', fontSize: '1rem', maxWidth: '480px', lineHeight: 1.7 }}>
               No importa si vendés a $5.000 o $5.000.000. La pregunta que define todo es la misma: ¿cuánto te cuesta conseguir un cliente que realmente paga?
             </motion.p>
           </motion.div>
@@ -764,9 +800,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FASE 3: CREATIVIDAD ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 0', backgroundColor: '#f0eeea', borderBottom: '1px solid #d8d4cd', overflow: 'hidden' }}>
-        <div className="max-w-6xl mx-auto" style={{ padding: '0 20px' }}>
+      {/* ── SECCIÓN DIVISORA: MARQUEE ── */}
+      <section style={{ padding: '0', backgroundColor: '#f0eeea', overflow: 'hidden' }}>
+        <div className="max-w-6xl mx-auto" style={{ padding: 'clamp(42px, 8vw, 96px) 20px 48px' }}>
 
           {/* Título + copy: 2 cols en desktop, 1 col en mobile */}
           <div className="grid md:grid-cols-2 gap-10 items-start" style={{ marginBottom: '40px' }}>
@@ -775,7 +811,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: '-60px' }}
               variants={stagger}
             >
-              <motion.div variants={fadeUp}><FaseTag>FASE 3 · EL MOTOR DE ESCALA</FaseTag></motion.div>
+              <motion.div variants={fadeUp}><FaseTag>FASE 3 · ESCALAR CON SISTEMA</FaseTag></motion.div>
               <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, color: '#111', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '20px' }}>
                 Un creativo ganador<br />
                 no es una estrategia.<br />
@@ -797,45 +833,58 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Tarjetas: 4 cols en desktop, 2 cols en mobile */}
+          {/* Tarjetas: 2x2 en mobile, 4 en desktop */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-            style={{ marginBottom: '36px' }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+            style={{ marginBottom: '40px' }}
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
           >
             {[
-              { icon: '🎨', label: 'Ángulos creativos', desc: 'Distintos enfoques para el mismo producto' },
-              { icon: '📐', label: 'Formatos múltiples', desc: 'Video, imagen, carrusel, UGC' },
-              { icon: '🪝', label: 'Hook + retención', desc: 'Los primeros 3 segundos atrapan. Los siguientes 15 convierten.' },
-              { icon: '📈', label: 'Escala sostenida', desc: 'CPA estable a medida que crecés' },
+              { icon: '🎨', label: 'Ángulos creativos', desc: 'Desarrollamos distintos enfoques para un mismo producto basándonos en insights.' },
+              { icon: '📐', label: 'Formatos múltiples', desc: 'Producimos Video, UGC, Estáticos y Carruseles para evitar la saturación.' },
+              { icon: '🪝', label: 'Hook + Retención', desc: 'Los primeros 3 segundos atrapan el scroll; los siguientes 15 cierran la venta.' },
+              { icon: '📈', label: 'Escala sostenida', desc: 'Mantenemos el CPA estable mientras subimos la inversión cada mes.' },
             ].map((item, i) => (
               <motion.div
                 key={i}
                 variants={fadeUp}
-                whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.07)', transition: { duration: 0.2 } }}
-                style={{ border: '1px solid #d8d4cd', borderRadius: '12px', padding: '20px', backgroundColor: '#e8e6e2', cursor: 'default' }}
+                whileHover={{ y: -5, boxShadow: '0 8px 30px rgba(0,0,0,0.08)', transition: { duration: 0.2 } }}
+                style={{ 
+                  border: '1px solid #d8d4cd', 
+                  borderRadius: '16px', 
+                  padding: '24px 20px', 
+                  backgroundColor: '#e8e6e2', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  cursor: 'default'
+                }}
               >
-                <span style={{ fontSize: '1.3rem', display: 'block', marginBottom: '10px' }}>{item.icon}</span>
-                <p style={{ fontWeight: 700, color: '#111', fontSize: '0.85rem', marginBottom: '6px' }}>{item.label}</p>
-                <p style={{ color: '#888', fontSize: '0.78rem', lineHeight: 1.5 }}>{item.desc}</p>
+                <motion.span 
+                  animate={{ y: [0, -2, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
+                  style={{ fontSize: '1.5rem', display: 'block' }}
+                >
+                  {item.icon}
+                </motion.span>
+                <div>
+                  <p style={{ fontWeight: 800, color: '#111', fontSize: '1rem', marginBottom: '8px', lineHeight: 1.2 }}>{item.label}</p>
+                  <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.55 }}>{item.desc}</p>
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
 
-        {/* Stack marquee: full width, fuera del max-w container */}
         <motion.div
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
           viewport={{ once: true }} transition={{ duration: 0.6 }}
         >
-          <p style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '14px', textAlign: 'center' }}>
-            Stack de herramientas
-          </p>
-          <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111', padding: '14px 0' }}>
-            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '60px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to right, #111, transparent)' }} />
-            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '60px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to left, #111, transparent)' }} />
+          <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111', padding: '18px 0' }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '100px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to right, #111, transparent)' }} />
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to left, #111, transparent)' }} />
             <div className="flex animate-marquee whitespace-nowrap">
               {[...TOOLS, ...TOOLS].map((t, i) => (
                 <span
@@ -857,102 +906,199 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#e8e6e2' }}>
-        <div className="max-w-4xl mx-auto">
+      <section style={{ padding: 'clamp(42px, 8vw, 96px) 20px', backgroundColor: '#e8e6e2' }}>
+        <div className="max-w-6xl mx-auto">
           <motion.div
-            className="mb-14"
+            className="text-left mb-8 md:mb-14"
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
           >
             <motion.div variants={fadeUp}><SectionLabel>Clientes reales</SectionLabel></motion.div>
-            <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111', lineHeight: 1.1 }}>
+            <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111', lineHeight: 1.1 }}>
               Lo que cambia cuando<br />el proceso funciona.
             </motion.h2>
           </motion.div>
 
-          <TestimonialSlider />
+          <TestimonialGrid />
         </div>
       </section>
 
-      {/* ── FILTRO ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
-        <div style={{
-          position: 'absolute', bottom: '-10%', right: '-5%',
-          width: '50%', height: '70%',
-          background: 'radial-gradient(ellipse, rgba(245,166,35,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center" style={{ position: 'relative', zIndex: 1 }}>
+      {/* ── DOS CAMINOS ── */}
+      <section style={{ padding: 'clamp(42px, 8vw, 96px) 20px', backgroundColor: '#e8e6e2' }}>
+        <div className="max-w-6xl mx-auto">
           <motion.div
+            className="text-left mb-8 md:mb-12"
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
           >
-            <motion.div variants={fadeUp}>
-              <SectionLabel light>Esto es para vos si...</SectionLabel>
-            </motion.div>
-            {[
-              'Tenés un producto o servicio y querés saber si tiene mercado',
-              'Estás invirtiendo en publicidad pero no sabés cuánto te cuesta cada cliente',
-              'Vendés por WhatsApp, por visita, por llamada o por checkout',
-              'Querés escalar sin quemar presupuesto en pruebas sin método',
-              'Te tomás el mercado argentino en serio y querés competir de verdad',
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '15px 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-              >
-                <div style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                    <path d="M1 4L3.5 6.5L9 1" stroke="#f5a623" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <p style={{ color: '#d4d0c8', fontSize: '0.95rem', lineHeight: 1.55 }}>{item}</p>
-              </motion.div>
-            ))}
-            <motion.div variants={fadeUp} style={{ marginTop: '28px' }}>
-              <motion.a
-                href={WA}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  backgroundColor: '#d48a0a', color: '#fff',
-                  fontWeight: 700, fontSize: '0.9rem',
-                  padding: '12px 22px', borderRadius: '8px',
-                  textDecoration: 'none',
-                }}
-                whileHover={{ backgroundColor: '#b87608' }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.15 }}
-              >
-                Hablá con nosotros →
-              </motion.a>
-            </motion.div>
+            <motion.div variants={fadeUp}><SectionLabel>Personalizá tu estrategia</SectionLabel></motion.div>
+            <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(1.6rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-0.03em', color: '#111', lineHeight: 1.05, marginBottom: '12px' }}>
+              ¿Cómo es tu proceso<br />
+              <span style={{ color: '#d48a0a' }}>de venta hoy?</span>
+            </motion.h2>
           </motion.div>
 
-          <motion.div
-            className="text-center md:text-left"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={slideRight}
-          >
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '20px' }}>
-              No aceptamos<br />a todos.<br />
-              <span style={{ color: '#f5a623' }}>Aceptamos<br />a los que van en serio.</span>
-            </h2>
-            <p style={{ color: '#aaa', lineHeight: 1.7, fontSize: '0.95rem' }}>
-              Si llegaste hasta acá, probablemente sos de los que entienden que escalar requiere proceso, no suerte. Eso ya es suficiente para hablar.
-            </p>
-          </motion.div>
+          <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-stretch">
+            {/* Selector lateral / superior */}
+            <div className="space-y-2 md:space-y-4">
+              {[
+                { id: 'ecommerce', label: 'Vendo por Tienda Online', icon: '🛍️', sub: 'Proceso automatizado' },
+                { id: 'whatsapp', label: 'Vendo por WhatsApp', icon: '💬', sub: 'Cierro por mensajes' },
+              ].map((opt) => (
+                <motion.button
+                  key={opt.id}
+                  onClick={() => setStrategy(opt.id)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '16px 20px',
+                    borderRadius: '14px',
+                    border: '1px solid',
+                    borderColor: strategy === opt.id ? '#d48a0a' : '#d8d4cd',
+                    backgroundColor: strategy === opt.id ? '#fff' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  whileHover={{ scale: strategy === opt.id ? 1 : 1.01 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <span style={{ fontSize: '1.25rem' }}>{opt.icon}</span>
+                  <div>
+                    <p style={{ fontWeight: 800, color: '#111', fontSize: '0.9rem', margin: 0 }}>{opt.label}</p>
+                    <p style={{ fontSize: '0.7rem', color: '#888', margin: 0 }}>{opt.sub}</p>
+                  </div>
+                  {strategy === opt.id && (
+                    <motion.div
+                      layoutId="active-bg"
+                      style={{
+                        position: 'absolute',
+                        right: 12,
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        backgroundColor: '#d48a0a',
+                      }}
+                    />
+                  )}
+                </motion.button>
+              ))}
+              
+              <p style={{ fontSize: '0.75rem', color: '#888', padding: '8px 12px', lineHeight: 1.5 }}>
+                Seleccioná tu modelo para ver cómo<br className="hidden md:block" /> 
+                <strong style={{ color: '#111' }}>escalamos</strong> tu negocio específicamente.
+              </p>
+            </div>
+
+            {/* Contenedor dinámico */}
+            <div className="flex flex-col">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={strategy}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    e.currentTarget.style.setProperty('--x', `${x}px`);
+                    e.currentTarget.style.setProperty('--y', `${y}px`);
+                  }}
+                  className="group relative"
+                  style={{
+                    backgroundColor: '#111',
+                    borderRadius: '24px',
+                    padding: 'clamp(24px, 5vw, 48px)',
+                    color: '#fff',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '0 24px 64px rgba(0,0,0,0.2)',
+                    minHeight: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    flex: 1,
+                    cursor: 'default',
+                  }}
+                >
+                  {/* Spotlight Effect */}
+                  <div 
+                    className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
+                    style={{
+                      background: `radial-gradient(400px circle at var(--x, 0) var(--y, 0), rgba(212,138,10,0.12), transparent 80%)`,
+                    }}
+                  />
+                  {/* Glow decorativo */}
+                  <div style={{
+                    position: 'absolute', top: '-10%', right: '-10%',
+                    width: '60%', height: '60%',
+                    background: 'radial-gradient(circle, rgba(212,138,10,0.15) 0%, transparent 70%)',
+                    pointerEvents: 'none',
+                  }} />
+
+                  {strategy === 'ecommerce' ? (
+                    <div className="space-y-6">
+                      <div style={{ display: 'inline-block', backgroundColor: 'rgba(212,138,10,0.1)', border: '1px solid rgba(212,138,10,0.3)', borderRadius: '100px', padding: '6px 16px', color: '#d48a0a', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em' }}>
+                        INVERSIÓN INTELIGENTE
+                      </div>
+                      <h3 style={{ fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        Sabemos en qué productos invertir<br />
+                        <span style={{ color: '#d48a0a' }}>y cuándo escalar.</span>
+                      </h3>
+                      <p style={{ color: '#aaa', lineHeight: 1.7, fontSize: '1.05rem' }}>
+                        Analizamos tu catálogo para <strong style={{ color: '#fff' }}>encontrar los productos ganadores</strong>. No desperdiciamos presupuesto en lo que no funciona; solo <strong style={{ color: '#d48a0a' }}>escalamos productos validados</strong> por el mercado para asegurar que cada peso rinda al máximo.
+                      </p>
+                      <div className="pt-4 mt-2 border-t border-white/10 flex gap-8">
+                        <div>
+                          <p style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase', marginBottom: '2px' }}>Métrica clave</p>
+                          <p style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem' }}>ROAS Real</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase', marginBottom: '2px' }}>Objetivo</p>
+                          <p style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem' }}>Escala Estratégica</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 md:space-y-6">
+                      <div style={{ display: 'inline-block', backgroundColor: 'rgba(212,138,10,0.1)', border: '1px solid rgba(212,138,10,0.3)', borderRadius: '100px', padding: '4px 14px', color: '#d48a0a', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em' }}>
+                        FILTRO DE ALTA INTENCIÓN
+                      </div>
+                      <h3 style={{ fontSize: 'clamp(1.4rem, 3vw, 2.1rem)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        Validamos tus ofertas llegando<br />
+                        <span style={{ color: '#d48a0a' }}>a gente dispuesta a comprar.</span>
+                      </h3>
+                      <p style={{ color: '#aaa', lineHeight: 1.6, fontSize: '0.95rem' }}>
+                        No gastamos dinero en curiosos. Tu equipo recibe conversaciones de personas con intención clara de cierre. Validamos tus ofertas para conocer tu <strong style={{ color: '#fff' }}>CPA Real</strong> y escalar solo lo que funciona.
+                      </p>
+                      <div className="pt-4 mt-2 border-t border-white/10 flex gap-8">
+                        <div>
+                          <p style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase', marginBottom: '2px' }}>Métrica clave</p>
+                          <p style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem' }}>CPA Real</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase', marginBottom: '2px' }}>Objetivo</p>
+                          <p style={{ fontWeight: 800, color: '#fff', fontSize: '1.2rem' }}>Cierre & Escala</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── CTA FINAL ── */}
-      <section style={{ padding: 'clamp(72px, 14vw, 120px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: 'clamp(56px, 12vw, 120px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
           <motion.div
             animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
@@ -968,14 +1114,14 @@ export default function LandingPage() {
           viewport={{ once: true, margin: '-60px' }}
           variants={stagger}
         >
-          <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(2.2rem, 7vw, 4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.0, marginBottom: '20px', textTransform: 'uppercase' }}>
+          <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(2rem, 7vw, 4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.0, marginBottom: '16px', textTransform: 'uppercase' }}>
             Publicidad que<br />
             <span style={{ color: '#25D366' }}>cierra ventas.</span>
           </motion.h2>
-          <motion.p variants={fadeUp} style={{ color: '#888', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 12px' }}>
+          <motion.p variants={fadeUp} style={{ color: '#888', fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '480px', margin: '0 auto 10px' }}>
             30 minutos. Sin compromiso. Si te podemos ayudar, te lo decimos. Si no, tambien.
           </motion.p>
-          <motion.p variants={fadeUp} style={{ color: 'rgba(37,211,102,0.7)', fontSize: '0.8rem', fontWeight: 600, marginBottom: '36px', letterSpacing: '0.04em' }}>
+          <motion.p variants={fadeUp} style={{ color: 'rgba(37,211,102,0.7)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '28px', letterSpacing: '0.04em' }}>
             MAXIMO 3 CLIENTES NUEVOS POR MES
           </motion.p>
           <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -997,7 +1143,7 @@ export default function LandingPage() {
               transition={{ duration: 0.15 }}
             >
               <WhatsAppIcon />
-              Hablá con un experto gratis
+              Pedí tu diagnóstico gratuito →
             </motion.a>
           </motion.div>
           <motion.p variants={fadeUp} style={{ marginTop: '14px', color: '#444', fontSize: '0.8rem' }}>

@@ -1,10 +1,28 @@
+# Build & deps
 node_modules/
 dist/
 .git/
 package-lock.json
-*.log
+
+# Secrets
 .env*
+
+# IDE & tooling
 .vscode/
 .claude/
+
+# Supabase internals (solo leer functions/ si se pide)
 supabase/.temp/
-public/assets/
+supabase/config.toml
+supabase/migrations/
+
+# Assets estaticos
+public/
+
+# Datos internos de agencia (no relevante para código)
+cache-vault/
+
+# Docs de referencia (solo leer si se pide explicitamente)
+STYLE_GUIDE.md
+README.md
+PROJECT_PLAN.md
