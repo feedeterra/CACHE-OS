@@ -826,7 +826,7 @@ export default function LandingPage() {
               {[
                 { icon: '🎨', label: 'Ángulos creativos', desc: 'Distintos enfoques para el mismo producto' },
                 { icon: '📐', label: 'Formatos múltiples', desc: 'Video, imagen, carrusel, UGC' },
-                { icon: '🪝', label: 'Hooks testeados', desc: 'Los primeros 3 segundos que retienen' },
+                { icon: '🪝', label: 'Hook + retención', desc: 'Los primeros 3 segundos atrapan. Los siguientes 15 convierten.' },
                 { icon: '📈', label: 'Escala sostenida', desc: 'CPA estable a medida que crecés' },
               ].map((item, i) => (
                 <motion.div
