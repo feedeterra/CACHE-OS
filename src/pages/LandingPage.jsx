@@ -192,8 +192,8 @@ function TestimonialSlider() {
     <div style={{ position: 'relative' }}>
       <div style={{
         backgroundColor: '#fff', border: '1px solid #d8d4cd',
-        borderRadius: '24px', padding: '48px 40px',
-        minHeight: '280px', display: 'flex', flexDirection: 'column',
+        borderRadius: '16px', padding: 'clamp(24px, 5vw, 48px) clamp(20px, 5vw, 40px)',
+        minHeight: 'unset', display: 'flex', flexDirection: 'column',
         alignItems: 'center', textAlign: 'center', justifyContent: 'center',
         boxShadow: '0 4px 24px rgba(0,0,0,0.04)', overflow: 'hidden', position: 'relative',
       }}>
@@ -208,8 +208,8 @@ function TestimonialSlider() {
             style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
             <p style={{
-              fontSize: 'clamp(1.1rem, 2.5vw, 1.35rem)', fontStyle: 'italic',
-              color: '#1a1a1a', lineHeight: 1.65, marginBottom: '32px',
+              fontSize: 'clamp(0.9rem, 2.5vw, 1.2rem)', fontStyle: 'italic',
+              color: '#1a1a1a', lineHeight: 1.6, marginBottom: '20px',
               fontWeight: 500, letterSpacing: '-0.01em', maxWidth: '700px',
             }}>
               "{t.quote}"
@@ -740,9 +740,9 @@ export default function LandingPage() {
             variants={stagger}
           >
             {[
-              { n: '03', title: 'El CPA real es la verdad', desc: 'Cuánto te cuesta un cliente que paga. De este número depende si escalás basado en datos o si estás quemando presupuesto sin saberlo.', accent: true },
               { n: '01', title: 'El ROAS se infla', desc: 'Atribuciones dobles, ventas orgánicas contadas como paid, iOS 14 rompiendo el pixel. El número de Ads Manager no es tu realidad.', accent: false },
               { n: '02', title: 'El costo por lead engaña', desc: 'Leads baratos que no cierran son más caros que leads caros que compran. Medir el lead sin medir la venta es operar a ciegas.', accent: false },
+              { n: '03', title: 'El CPA real es la verdad', desc: 'Cuánto te cuesta un cliente que paga. De este número depende si escalás basado en datos o si estás quemando presupuesto sin saberlo.', accent: true },
             ].map((c, i) => (
               <motion.div
                 key={i}
@@ -920,6 +920,7 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.div
+            className="text-center md:text-left"
             initial="hidden" whileInView="visible"
             viewport={{ once: true, margin: '-60px' }}
             variants={slideRight}
@@ -928,7 +929,7 @@ export default function LandingPage() {
               No aceptamos<br />a todos.<br />
               <span style={{ color: '#f5a623' }}>Aceptamos<br />a los que van en serio.</span>
             </h2>
-            <p style={{ color: '#555', lineHeight: 1.7, fontSize: '0.95rem' }}>
+            <p style={{ color: '#aaa', lineHeight: 1.7, fontSize: '0.95rem' }}>
               Si llegaste hasta acá, probablemente sos de los que entienden que escalar requiere proceso, no suerte. Eso ya es suficiente para hablar.
             </p>
           </motion.div>
@@ -936,53 +937,56 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA FINAL ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 100px) 20px', backgroundColor: '#f0eeea', position: 'relative', overflow: 'hidden' }}>
-        {/* Mismo tratamiento de blobs que el hero */}
+      <section style={{ padding: 'clamp(72px, 14vw, 120px) 20px', backgroundColor: '#111', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '-20%', right: '10%', width: '50vw', height: '50vw', maxWidth: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,138,10,0.1) 0%, transparent 70%)', filter: 'blur(50px)' }} />
-          <div style={{ position: 'absolute', bottom: '-10%', left: '5%', width: '35vw', height: '35vw', maxWidth: '360px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,138,10,0.07) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '80%', background: 'radial-gradient(ellipse, rgba(37,211,102,0.07) 0%, transparent 70%)', filter: 'blur(40px)' }}
+          />
         </div>
 
         <motion.div
-          className="max-w-2xl mx-auto text-center"
+          className="max-w-3xl mx-auto text-center"
           style={{ position: 'relative', zIndex: 1 }}
           initial="hidden" whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
           variants={stagger}
         >
-          <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '16px' }}>
-            Analizamos tu situación<br />
-            <span style={{ color: '#d48a0a' }}>gratis y sin compromiso.</span>
+          <motion.h2 variants={fadeUp} style={{ fontSize: 'clamp(2.2rem, 7vw, 4rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.0, marginBottom: '20px', textTransform: 'uppercase' }}>
+            Publicidad que<br />
+            <span style={{ color: '#25D366' }}>cierra ventas.</span>
           </motion.h2>
-          <motion.p variants={fadeUp} style={{ color: '#666', fontSize: '1rem', lineHeight: 1.7, maxWidth: '420px', margin: '0 auto 12px' }}>
-            Si te podemos ayudar, te lo decimos. Si no, también. 30 minutos que pueden cambiar cómo ves tu publicidad.
+          <motion.p variants={fadeUp} style={{ color: '#888', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 12px' }}>
+            30 minutos. Sin compromiso. Si te podemos ayudar, te lo decimos. Si no, tambien.
           </motion.p>
-          <motion.p variants={fadeUp} style={{ color: '#d48a0a', fontSize: '0.82rem', fontWeight: 600, marginBottom: '32px', letterSpacing: '0.02em' }}>
-            Aceptamos máximo 3 clientes nuevos por mes.
+          <motion.p variants={fadeUp} style={{ color: 'rgba(37,211,102,0.7)', fontSize: '0.8rem', fontWeight: 600, marginBottom: '36px', letterSpacing: '0.04em' }}>
+            MAXIMO 3 CLIENTES NUEVOS POR MES
           </motion.p>
-          <motion.div variants={fadeUp}>
+          <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'center' }}>
             <motion.a
               href={WA}
               target="_blank"
               rel="noopener noreferrer"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
-                backgroundColor: '#d48a0a', color: '#fff',
-                fontWeight: 700, fontSize: '1.05rem',
-                padding: '17px 36px', borderRadius: '12px',
-                textDecoration: 'none',
-                boxShadow: '0 4px 28px rgba(212,138,10,0.35)',
+                backgroundColor: '#25D366', color: '#fff',
+                fontWeight: 700, fontSize: '1rem',
+                padding: '16px 32px', borderRadius: '12px',
+                textDecoration: 'none', width: '100%', maxWidth: '360px',
+                justifyContent: 'center',
+                boxShadow: '0 4px 32px rgba(37,211,102,0.3)',
               }}
-              whileHover={{ backgroundColor: '#b87608', scale: 1.03 }}
+              whileHover={{ backgroundColor: '#1ebe5d', scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               transition={{ duration: 0.15 }}
             >
               <WhatsAppIcon />
-              Analizamos tu situación gratis →
+              Hablá con un experto gratis
             </motion.a>
           </motion.div>
-          <motion.p variants={fadeUp} style={{ marginTop: '14px', color: '#bbb', fontSize: '0.8rem' }}>
-            WhatsApp directo · Respondemos en el día
+          <motion.p variants={fadeUp} style={{ marginTop: '14px', color: '#444', fontSize: '0.8rem' }}>
+            Respondemos en el dia
           </motion.p>
         </motion.div>
       </section>
