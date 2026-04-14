@@ -765,9 +765,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── FASE 3: CREATIVIDAD ── */}
-      <section style={{ padding: 'clamp(56px, 10vw, 96px) 20px', backgroundColor: '#f0eeea', borderBottom: '1px solid #d8d4cd' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section style={{ padding: 'clamp(56px, 10vw, 96px) 0', backgroundColor: '#f0eeea', borderBottom: '1px solid #d8d4cd', overflow: 'hidden' }}>
+        <div className="max-w-6xl mx-auto" style={{ padding: '0 20px' }}>
+
+          {/* Título + copy: 2 cols en desktop, 1 col en mobile */}
+          <div className="grid md:grid-cols-2 gap-10 items-start" style={{ marginBottom: '40px' }}>
             <motion.div
               initial="hidden" whileInView="visible"
               viewport={{ once: true, margin: '-60px' }}
@@ -779,70 +781,79 @@ export default function LandingPage() {
                 no es una estrategia.<br />
                 <span style={{ color: '#d48a0a' }}>Es un accidente.</span>
               </motion.h2>
-              <motion.p variants={fadeUp} style={{ color: '#555', lineHeight: 1.8, fontSize: '1.05rem', marginBottom: '16px' }}>
-                El algoritmo premia la variedad. Cuando siempre mostrás lo mismo, la audiencia se satura y el costo sube. Producimos múltiples <strong style={{ color: '#111' }}>ángulos, formatos y hooks</strong> para que siempre haya algo fresco que probar.
-              </motion.p>
-              <motion.p variants={fadeUp} style={{ color: '#555', lineHeight: 1.8, fontSize: '1.05rem', marginBottom: '32px' }}>
-                Cada creativo prueba una hipótesis. Los que funcionan, se escalan. Los que no, enseñan algo. Así construimos un <strong style={{ color: '#111' }}>banco de conocimiento</strong> sobre tu cliente que ningún competidor puede comprar.
-              </motion.p>
-
-              {/* Stack de herramientas movido aquí */}
-              <motion.div
-                variants={fadeUp}
-                style={{ borderTop: '1px solid #d8d4cd', paddingTop: '24px' }}
-              >
-                <p style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                  Stack de herramientas
-                </p>
-                <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111', borderRadius: '10px', padding: '12px 0' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to right, #111, transparent)' }} />
-                  <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to left, #111, transparent)' }} />
-                  <div className="flex animate-marquee whitespace-nowrap">
-                    {[...TOOLS, ...TOOLS].map((t, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: 'inline-block', flexShrink: 0,
-                          fontSize: '0.75rem', fontWeight: 600, color: '#d48a0a',
-                          backgroundColor: 'rgba(212,138,10,0.08)',
-                          border: '1px solid rgba(212,138,10,0.45)',
-                          borderRadius: '100px', padding: '5px 16px', margin: '0 6px',
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
             </motion.div>
 
             <motion.div
-              className="grid grid-cols-2 gap-4"
               initial="hidden" whileInView="visible"
               viewport={{ once: true, margin: '-60px' }}
               variants={stagger}
             >
-              {[
-                { icon: '🎨', label: 'Ángulos creativos', desc: 'Distintos enfoques para el mismo producto' },
-                { icon: '📐', label: 'Formatos múltiples', desc: 'Video, imagen, carrusel, UGC' },
-                { icon: '🪝', label: 'Hook + retención', desc: 'Los primeros 3 segundos atrapan. Los siguientes 15 convierten.' },
-                { icon: '📈', label: 'Escala sostenida', desc: 'CPA estable a medida que crecés' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  variants={fadeUp}
-                  whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.07)', transition: { duration: 0.2 } }}
-                  style={{ border: '1px solid #d8d4cd', borderRadius: '12px', padding: '22px', backgroundColor: '#e8e6e2', cursor: 'default' }}
-                >
-                  <span style={{ fontSize: '1.4rem', display: 'block', marginBottom: '10px' }}>{item.icon}</span>
-                  <p style={{ fontWeight: 700, color: '#111', fontSize: '0.9rem', marginBottom: '6px' }}>{item.label}</p>
-                  <p style={{ color: '#888', fontSize: '0.8rem', lineHeight: 1.5 }}>{item.desc}</p>
-                </motion.div>
-              ))}
+              <motion.p variants={fadeUp} style={{ color: '#555', lineHeight: 1.8, fontSize: '1.05rem', marginBottom: '16px' }}>
+                El algoritmo premia la variedad. Cuando siempre mostrás lo mismo, la audiencia se satura y el costo sube. Producimos múltiples <strong style={{ color: '#111' }}>ángulos, formatos y hooks</strong> para que siempre haya algo fresco que probar.
+              </motion.p>
+              <motion.p variants={fadeUp} style={{ color: '#555', lineHeight: 1.8, fontSize: '1.05rem' }}>
+                Cada creativo prueba una hipótesis. Los que funcionan, se escalan. Los que no, enseñan algo. Así construimos un <strong style={{ color: '#111' }}>banco de conocimiento</strong> sobre tu cliente que ningún competidor puede comprar.
+              </motion.p>
             </motion.div>
           </div>
+
+          {/* Tarjetas: 4 cols en desktop, 2 cols en mobile */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            style={{ marginBottom: '36px' }}
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={stagger}
+          >
+            {[
+              { icon: '🎨', label: 'Ángulos creativos', desc: 'Distintos enfoques para el mismo producto' },
+              { icon: '📐', label: 'Formatos múltiples', desc: 'Video, imagen, carrusel, UGC' },
+              { icon: '🪝', label: 'Hook + retención', desc: 'Los primeros 3 segundos atrapan. Los siguientes 15 convierten.' },
+              { icon: '📈', label: 'Escala sostenida', desc: 'CPA estable a medida que crecés' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.07)', transition: { duration: 0.2 } }}
+                style={{ border: '1px solid #d8d4cd', borderRadius: '12px', padding: '20px', backgroundColor: '#e8e6e2', cursor: 'default' }}
+              >
+                <span style={{ fontSize: '1.3rem', display: 'block', marginBottom: '10px' }}>{item.icon}</span>
+                <p style={{ fontWeight: 700, color: '#111', fontSize: '0.85rem', marginBottom: '6px' }}>{item.label}</p>
+                <p style={{ color: '#888', fontSize: '0.78rem', lineHeight: 1.5 }}>{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
+
+        {/* Stack marquee: full width, fuera del max-w container */}
+        <motion.div
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
+          viewport={{ once: true }} transition={{ duration: 0.6 }}
+        >
+          <p style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '14px', textAlign: 'center' }}>
+            Stack de herramientas
+          </p>
+          <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111', padding: '14px 0' }}>
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '60px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to right, #111, transparent)' }} />
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '60px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to left, #111, transparent)' }} />
+            <div className="flex animate-marquee whitespace-nowrap">
+              {[...TOOLS, ...TOOLS].map((t, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: 'inline-block', flexShrink: 0,
+                    fontSize: '0.78rem', fontWeight: 600, color: '#d48a0a',
+                    backgroundColor: 'rgba(212,138,10,0.08)',
+                    border: '1px solid rgba(212,138,10,0.45)',
+                    borderRadius: '100px', padding: '6px 18px', margin: '0 8px',
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* ── TESTIMONIOS ── */}
