@@ -794,21 +794,25 @@ export default function LandingPage() {
                 <p style={{ fontSize: '0.68rem', color: '#aaa', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '16px' }}>
                   Stack de herramientas
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {TOOLS.map((t, i) => (
-                    <motion.span
-                      key={i}
-                      whileHover={{ scale: 1.05, borderColor: '#d48a0a' }}
-                      style={{
-                        fontSize: '0.78rem', fontWeight: 600, color: '#555',
-                        backgroundColor: '#fff', border: '1px solid #d0ccc5',
-                        borderRadius: '100px', padding: '5px 14px',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      {t}
-                    </motion.span>
-                  ))}
+                <div style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#111', borderRadius: '10px', padding: '12px 0' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to right, #111, transparent)' }} />
+                  <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40px', zIndex: 1, pointerEvents: 'none', background: 'linear-gradient(to left, #111, transparent)' }} />
+                  <div className="flex animate-marquee whitespace-nowrap">
+                    {[...TOOLS, ...TOOLS].map((t, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: 'inline-block', flexShrink: 0,
+                          fontSize: '0.75rem', fontWeight: 600, color: '#d48a0a',
+                          backgroundColor: 'rgba(212,138,10,0.08)',
+                          border: '1px solid rgba(212,138,10,0.45)',
+                          borderRadius: '100px', padding: '5px 16px', margin: '0 6px',
+                        }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
